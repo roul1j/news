@@ -3,27 +3,22 @@
 namespace GeorgRinger\News\Tests\Unit\Controller;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
 use GeorgRinger\News\Controller\TagController;
 use GeorgRinger\News\Domain\Model\Dto\NewsDemand;
 use GeorgRinger\News\Domain\Repository\TagRepository;
+use Nimut\TestingFramework\TestCase\UnitTestCase;
 
 /**
  * Testcase for the TagController class.
  *
  *
  */
-class TagControllerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
+class TagControllerTest extends UnitTestCase
 {
 
     /**
@@ -38,7 +33,6 @@ class TagControllerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
     /**
      * Set up framework
      *
-     * @return void
      */
     public function setUp()
     {
@@ -50,7 +44,6 @@ class TagControllerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
     /**
      * Tear down framework
      *
-     * @return void
      */
     public function tearDown()
     {
@@ -61,7 +54,6 @@ class TagControllerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
      * Test for creating correct demand call
      *
      * @test
-     * @return void
      */
     public function listActionFindsDemandedTagsByDemandFromSettings()
     {

@@ -32,18 +32,20 @@ $newSysCategoryColumns = [
         ]
     ],
     'images' => [
-        'exclude' => 1,
-        'l10n_mode' => 'mergeIfNotBlank',
+        'exclude' => true,
         'label' => $ll . 'tx_news_domain_model_category.image',
         'config' => \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::getFileFieldTCAConfig(
             'images',
             [
+                'behaviour' => [
+                    'allowLanguageSynchronization' => true,
+                ],
                 'appearance' => [
                     'createNewRelationLinkTitle' => 'LLL:EXT:frontend/Resources/Private/Language/locallang_ttc.xlf:images.addFileReference',
-                    'showPossibleLocalizationRecords' => 1,
-                    'showRemovedLocalizationRecords' => 1,
-                    'showAllLocalizationLink' => 1,
-                    'showSynchronizationLink' => 1
+                    'showPossibleLocalizationRecords' => true,
+                    'showRemovedLocalizationRecords' => true,
+                    'showAllLocalizationLink' => true,
+                    'showSynchronizationLink' => true
                 ],
                 'foreign_match_fields' => [
                     'fieldname' => 'images',
@@ -55,8 +57,7 @@ $newSysCategoryColumns = [
         )
     ],
     'single_pid' => [
-        'exclude' => 1,
-        'l10n_mode' => 'mergeIfNotBlank',
+        'exclude' => true,
         'label' => $ll . 'tx_news_domain_model_category.single_pid',
         'config' => [
             'type' => 'group',
@@ -64,22 +65,19 @@ $newSysCategoryColumns = [
             'allowed' => 'pages',
             'size' => 1,
             'maxitems' => 1,
-            'minitems' => 0,
-            'show_thumbs' => 1,
             'default' => 0,
-            'wizards' => [
-                'suggest' => [
-                    'type' => 'suggest',
-                    'default' => [
-                        'searchWholePhrase' => true
-                    ]
-                ],
+            'suggestOptions' => [
+                'default' => [
+                    'searchWholePhrase' => true,
+                ]
+            ],
+            'behaviour' => [
+                'allowLanguageSynchronization' => true,
             ],
         ]
     ],
     'shortcut' => [
-        'exclude' => 1,
-        'l10n_mode' => 'mergeIfNotBlank',
+        'exclude' => true,
         'label' => $ll . 'tx_news_domain_model_category.shortcut',
         'config' => [
             'type' => 'group',
@@ -87,16 +85,14 @@ $newSysCategoryColumns = [
             'allowed' => 'pages',
             'size' => 1,
             'maxitems' => 1,
-            'minitems' => 0,
-            'show_thumbs' => 1,
             'default' => 0,
-            'wizards' => [
-                'suggest' => [
-                    'type' => 'suggest',
-                    'default' => [
-                        'searchWholePhrase' => true
-                    ]
-                ],
+            'suggestOptions' => [
+                'default' => [
+                    'searchWholePhrase' => true,
+                ]
+            ],
+            'behaviour' => [
+                'allowLanguageSynchronization' => true,
             ],
         ]
     ],
@@ -113,33 +109,34 @@ $newSysCategoryColumns = [
         ]
     ],
     'seo_headline' => [
-        'exclude' => 1,
+        'exclude' => true,
         'label' => $ll . 'tx_news_domain_model_category.seo.seo_headline',
         'config' => [
             'type' => 'input',
         ],
     ],
     'seo_title' => [
-        'exclude' => 1,
+        'exclude' => true,
         'label' => $ll . 'tx_news_domain_model_category.seo.seo_title',
         'config' => [
             'type' => 'input',
         ],
     ],
     'seo_description' => [
-        'exclude' => 1,
+        'exclude' => true,
         'label' => $ll . 'tx_news_domain_model_category.seo.seo_description',
         'config' => [
             'type' => 'text',
         ],
     ],
     'seo_text' => [
-        'exclude' => 1,
+        'exclude' => true,
         'label' => $ll . 'tx_news_domain_model_category.seo.seo_text',
         'config' => [
             'type' => 'text',
+            'enableRichtext' => true,
+            'richtextConfiguration' => 'default',
         ],
-        'defaultExtras' => 'richtext:rte_transform',
     ],
 ];
 

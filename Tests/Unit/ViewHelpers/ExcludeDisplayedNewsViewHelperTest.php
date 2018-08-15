@@ -3,35 +3,30 @@
 namespace GeorgRinger\News\Tests\Unit\ViewHelpers;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
 use GeorgRinger\News\Domain\Model\News;
 use GeorgRinger\News\ViewHelpers\ExcludeDisplayedNewsViewHelper;
+use Nimut\TestingFramework\TestCase\UnitTestCase;
+use TYPO3\CMS\Fluid\Core\Rendering\RenderingContext;
 
 /**
  * Tests for ExcludeDisplayedNewsViewHelper
  *
  */
-class ExcludeDisplayedNewsViewHelperTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
+class ExcludeDisplayedNewsViewHelperTest extends UnitTestCase
 {
-
 
     /**
      * @test
-     * @return void
      */
     public function newsIsAddedToExcludedList()
     {
         $viewHelper = new ExcludeDisplayedNewsViewHelper();
+        $viewHelper->setRenderingContext($this->getMockBuilder(RenderingContext::class)->disableOriginalConstructor()->getMock());
         $this->assertEquals($GLOBALS['EXT']['news']['alreadyDisplayed'], null);
 
         $newsItem1 = new News();

@@ -37,10 +37,10 @@
 				<source>Related Links</source>
 			</trans-unit>
 			<trans-unit id="author" xml:space="preserve">
-				<source>created by %s</source>
+				<source>Created by %s</source>
 			</trans-unit>
 			<trans-unit id="author_simple" xml:space="preserve">
-				<source>created by</source>
+				<source>Created by</source>
 			</trans-unit>
 			<trans-unit id="paginate_overall" xml:space="preserve">
 				<source>Page %s of %s.</source>
@@ -128,6 +128,9 @@
 			</trans-unit>
 			<trans-unit id="list_nocategoriesfound" xml:space="preserve">
 				<source>No categories available.</source>
+			</trans-unit>
+			<trans-unit id="newsNotFound" xml:space="preserve">
+				<source>The news record is not available anymore.</source>
 			</trans-unit>
 		</body>
 	</file>

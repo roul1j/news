@@ -2,16 +2,10 @@
 namespace GeorgRinger\News\Utility;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -27,6 +21,11 @@ class ClassCacheManager
     protected $cacheInstance;
 
     /**
+     * @var array
+     */
+    protected $constructorLines = [];
+
+    /**
      * Constructor
      *
      * @return self
@@ -40,6 +39,10 @@ class ClassCacheManager
     public function reBuild()
     {
         $classPath = 'Classes/';
+
+        if (!function_exists('token_get_all')) {
+            throw new \Exception(('The function token_get_all must exist. Please install the module PHP Module Tokenizer'));
+        }
 
         foreach ($GLOBALS['TYPO3_CONF_VARS']['EXT']['news']['classes'] as $key => $extensionsWithThisClass) {
             $extendingClassFound = false;
@@ -57,6 +60,9 @@ class ClassCacheManager
                     $extendingClassFound = true;
                     $code .= $this->parseSingleFile($path, false);
                 }
+            }
+            if (count($this->constructorLines)) {
+                $code .= LF . '    public function __construct()' . LF . '    {' . LF . implode(LF, $this->constructorLines) . LF . '    }' . LF;
             }
             $code = $this->closeClassDefinition($code);
 
@@ -91,32 +97,51 @@ class ClassCacheManager
         }
         $code = GeneralUtility::getUrl($filePath);
 
-        if ($baseClass) {
-            $closingBracket = strrpos($code, '}');
-            $content = substr($code, 0, $closingBracket);
-            $content = str_replace('<?php', '', $content);
-            return $content;
-        } else {
-            $classParser = GeneralUtility::makeInstance(ClassParser::class);
-            $classParser->parse($filePath);
-            $classParserInformation = $classParser->getFirstClass();
-            $codeInLines = explode(LF, str_replace(CR, '', $code));
+        $classParser = GeneralUtility::makeInstance(ClassParser::class);
+        $classParser->parse($filePath);
+        $classParserInformation = $classParser->getFirstClass();
 
+        $code = str_replace('<?php', '', $code);
+        $codeInLines = explode(LF, str_replace(CR, '', $code));
+        $offsetForInnerPart = 0;
+
+        if ($baseClass) {
+            $innerPart = $codeInLines;
+        } else {
+            $offsetForInnerPart = $classParserInformation['start'];
             if (isset($classParserInformation['eol'])) {
                 $innerPart = array_slice($codeInLines, $classParserInformation['start'],
                     ($classParserInformation['eol'] - $classParserInformation['start'] - 1));
             } else {
                 $innerPart = array_slice($codeInLines, $classParserInformation['start']);
             }
-
-            if (trim($innerPart[0]) === '{') {
-                unset($innerPart[0]);
-            }
-            $codePart = implode(LF, $innerPart);
-            $closingBracket = strrpos($codePart, '}');
-            $content = $this->getPartialInfo($filePath) . substr($codePart, 0, $closingBracket);
-            return $content;
         }
+
+        if (trim($innerPart[0]) === '{') {
+            unset($innerPart[0]);
+        }
+
+        // unset the constructor and save it's lines
+        if (isset($classParserInformation['functions']['__construct'])) {
+            $constructorInfo = $classParserInformation['functions']['__construct'];
+            for ($i = $constructorInfo['start'] - $offsetForInnerPart; $i < $constructorInfo['end'] - $offsetForInnerPart; $i++) {
+                if (trim($innerPart[$i]) === '{') {
+                    unset($innerPart[$i]);
+                    continue;
+                }
+                $this->constructorLines[] = $innerPart[$i];
+                unset($innerPart[$i]);
+            }
+            unset($innerPart[$constructorInfo['start'] - $offsetForInnerPart - 1]);
+            unset($innerPart[$constructorInfo['end'] - $offsetForInnerPart]);
+        }
+
+        $codePart = implode(LF, $innerPart);
+        $closingBracket = strrpos($codePart, '}');
+        $codePart = substr($codePart, 0, $closingBracket);
+
+        $content = $this->getPartialInfo($filePath) . $codePart;
+        return $content;
     }
 
     /**

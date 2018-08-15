@@ -2,22 +2,17 @@
 
 namespace GeorgRinger\News\Hooks;
 
-    /**
-     * This file is part of the TYPO3 CMS project.
-     *
-     * It is free software; you can redistribute it and/or modify it under
-     * the terms of the GNU General Public License, either version 2
-     * of the License, or any later version.
-     *
-     * For the full copyright and license information, please read the
-     * LICENSE.txt file that was distributed with this source code.
-     *
-     * The TYPO3 project - inspiring people to share!
-     */
+/**
+ * This file is part of the "news" Extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
+use TYPO3\CMS\Backend\Form\Element\InlineElement;
 
 /**
  * Inline Element Hook
- *
  */
 class InlineElementHook implements \TYPO3\CMS\Backend\Form\Element\InlineElementHookInterface
 {
@@ -25,8 +20,7 @@ class InlineElementHook implements \TYPO3\CMS\Backend\Form\Element\InlineElement
     /**
      * Initializes this hook object.
      *
-     * @param \TYPO3\CMS\Backend\Form\Element\InlineElement $parentObject
-     * @return void
+     * @param InlineElement $parentObject
      */
     public function init(&$parentObject)
     {
@@ -41,7 +35,6 @@ class InlineElementHook implements \TYPO3\CMS\Backend\Form\Element\InlineElement
      * @param array $childConfig TCA configuration of the current field of the child record
      * @param bool $isVirtual Defines whether the current records is only virtually shown and not physically part of the parent record
      * @param array &$enabledControls (reference) Associative array with the enabled control items
-     * @return void
      */
     public function renderForeignRecordHeaderControl_preProcess(
         $parentUid,
@@ -63,7 +56,6 @@ class InlineElementHook implements \TYPO3\CMS\Backend\Form\Element\InlineElement
      * @param array $childConfig TCA configuration of the current field of the child record
      * @param bool $isVirtual Defines whether the current records is only virtually shown and not physically part of the parent record
      * @param array &$controlItems (reference) Associative array with the currently available control items
-     * @return void
      */
     public function renderForeignRecordHeaderControl_postProcess(
         $parentUid,
@@ -74,10 +66,24 @@ class InlineElementHook implements \TYPO3\CMS\Backend\Form\Element\InlineElement
         array &$controlItems
     )
     {
-        if ($foreignTable === 'sys_file_reference' && !empty($childRecord['showinpreview'])) {
-            $label = $GLOBALS['LANG']->sL('LLL:EXT:news/Resources/Private/Language/locallang_db.xlf:tx_news_domain_model_media.showinpreview');
-            $extraItem = ['showinpreview' => ' <span class="btn btn-default" title="' . htmlspecialchars($label) . '"><i class="fa fa-check"></i></span>'];
-            $controlItems = $extraItem + $controlItems;
+        $previewSetting = (int)$childRecord['showinpreview'];
+        if ($foreignTable === 'sys_file_reference' && $previewSetting > 0) {
+            $ll = 'LLL:EXT:news/Resources/Private/Language/locallang_db.xlf:';
+
+            if (\GeorgRinger\News\Utility\EmConfiguration::getSettings()->isAdvancedMediaPreview()) {
+                if ($previewSetting === 1) {
+                    $label = $GLOBALS['LANG']->sL($ll . 'tx_news_domain_model_media.showinviews.1');
+                    $extraItem = ['showinpreview' => ' <span class="btn btn-default" title="' . htmlspecialchars($label) . '"><i class="fa fa-check"></i></span>'];
+                } elseif ($previewSetting === 2) {
+                    $label = $GLOBALS['LANG']->sL($ll . 'tx_news_domain_model_media.showinviews.2');
+                    $extraItem = ['showinpreview' => ' <span class="btn btn-default" title="' . htmlspecialchars($label) . '"><i class="fa fa-check"></i><i class="fa fa-check"></i></span>'];
+                }
+                $controlItems = $extraItem + $controlItems;
+            } elseif ($previewSetting === 1) {
+                $label = $GLOBALS['LANG']->sL($ll . 'tx_news_domain_model_media.showinpreview');
+                $extraItem = ['showinpreview' => ' <span class="btn btn-default" title="' . htmlspecialchars($label) . '"><i class="fa fa-check"></i></span>'];
+                $controlItems = $extraItem + $controlItems;
+            }
         }
     }
 }

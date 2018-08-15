@@ -30,14 +30,35 @@ This needs to be done in the configuration of EXT:news inside the Extension Mana
 #. Select "Import tt_news category records" from the select box and start the import of categories.
 #. Select "Import tt_news news records" from the select box and start the import of news records.
 
+
 Migration of plugins
 """"""""""""""""""""
-Since the latest version of news_ttnewsimport it is also possible to migrate tt_news plugins
-which is especially useful if you got some dozens of those.
+The plugins of tt_news can be migrated to plugins of EXT:news as well. This is done by using the CLI:
 
-All settings which can be mapped are migrated!
+.. code-block:: bash
 
-For further information, please take a look at the manual of news_ttnewsimport!
+	./typo3/cli_dispatch.phpsh extbase ttnewspluginmigrate:run
+	./typo3/cli_dispatch.phpsh extbase ttnewspluginmigrate:removeOldPlugins
+
+Read more about the migration and its limitation in the documentation of news_ttnewsimport at https://github.com/fsaris/news_ttnewsimport.
+
+Migration of unique aliases
+"""""""""""""""""""""""""""
+If a lot of similar titles are used it might be a good a idea to migrate the unique aliases to be sure that the same alias is used.
+
+.. code-block:: sql
+
+   # temporary table
+   CREATE TABLE tx_realurl_uniqalias_migration LIKE tx_realurl_uniqalias;
+   # copy
+   INSERT INTO tx_realurl_uniqalias_migration SELECT * FROM tx_realurl_uniqalias WHERE tablename='tt_news';
+   # fix it
+   UPDATE tx_realurl_uniqalias_migration SET value_id = (SELECT tx_news_domain_model_news.uid FROM `tx_news_domain_model_news` WHERE tx_news_domain_model_news.import_id=tx_realurl_uniqalias_migration.value_id),tablename='tx_news_domain_model_news' WHERE tablename='tt_news';
+   # remove wrong alias (news which have not been imported)
+   DELETE FROM tx_realurl_uniqalias_migration WHERE tablename='tx_news_domain_model_news' AND value_id=0;
+   # insert alias back into realurl table
+   INSERT INTO tx_realurl_uniqalias (tstamp,tablename,field_id,value_alias,value_id,lang,expire) SELECT tstamp,tablename,field_id,value_alias,value_id,lang,expire FROM tx_realurl_uniqalias_migration
+
 
 Not migrated
 """"""""""""

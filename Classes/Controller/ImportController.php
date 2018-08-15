@@ -2,30 +2,37 @@
 namespace GeorgRinger\News\Controller;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
+use Exception;
 use GeorgRinger\News\Jobs\ImportJobInterface;
 use GeorgRinger\News\Utility\EmConfiguration;
 use GeorgRinger\News\Utility\ImportJob;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Backend\View\BackendTemplateView;
+use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Resource\Exception\FolderDoesNotExistException;
 use TYPO3\CMS\Core\Resource\ResourceFactory;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\HttpUtility;
+use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
+use UnexpectedValueException;
 
 /**
  * Controller to import news records
- *
  */
-class ImportController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionController
+class ImportController extends ActionController
 {
+
+    /**
+     * Backend Template Container
+     *
+     * @var BackendTemplateView
+     */
+    protected $defaultViewObjectName = BackendTemplateView::class;
 
     /**
      * Retrieve all available import jobs by traversing trough registered
@@ -51,10 +58,12 @@ class ImportController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControlle
     /**
      * Shows the import jobs selection .
      *
-     * @return void
      */
     public function indexAction()
     {
+        $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
+        $pageRenderer->loadRequireJsModule('TYPO3/CMS/News/Import');
+
         $this->view->assignMultiple([
                 'error' => $this->checkCorrectConfiguration(),
                 'availableJobs' => array_merge([0 => ''], $this->getAvailableJobs()),
@@ -67,7 +76,7 @@ class ImportController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControlle
      * Check for correct configuration
      *
      * @return string
-     * @throws \Exception
+     * @throws Exception
      * @throws \TYPO3\CMS\Core\Resource\Exception\InsufficientFolderAccessPermissionsException
      */
     protected function checkCorrectConfiguration()
@@ -79,15 +88,19 @@ class ImportController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControlle
             $storageId = (int)$settings->getStorageUidImporter();
             $path = $settings->getResourceFolderImporter();
             if ($storageId === 0) {
-                throw new \UnexpectedValueException('import.error.configuration.storageUidImporter');
+                throw new UnexpectedValueException('import.error.configuration.storageUidImporter');
             }
             if (empty($path)) {
-                throw new \UnexpectedValueException('import.error.configuration.resourceFolderImporter');
+                throw new UnexpectedValueException('import.error.configuration.resourceFolderImporter');
             }
-            $storage = $this->getResourceFactory()->getStorageObject($settings->getStorageUidImporter());
+            $storage = $this->getResourceFactory()->getStorageObject($storageId);
+            $pathExists = $storage->hasFolder($path);
+            if (!$pathExists) {
+                throw new FolderDoesNotExistException('Folder does not exist', 1474827988);
+            }
         } catch (FolderDoesNotExistException $e) {
             $error = 'import.error.configuration.resourceFolderImporter.notExist';
-        } catch (\UnexpectedValueException $e) {
+        } catch (UnexpectedValueException $e) {
             $error = $e->getMessage();
         }
         return $error;
@@ -102,6 +115,7 @@ class ImportController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControlle
      */
     public function runJobAction($jobClassName, $offset = 0)
     {
+        /** @var ImportJobInterface $job */
         $job = $this->objectManager->get($jobClassName);
         $job->run($offset);
 
@@ -116,8 +130,20 @@ class ImportController extends \TYPO3\CMS\Extbase\Mvc\Controller\ActionControlle
      */
     public function jobInfoAction($jobClassName)
     {
-        $job = $this->objectManager->get($jobClassName);
-        return json_encode($job->getInfo());
+        $response = null;
+        try {
+            /** @var ImportJobInterface $job */
+            $job = $this->objectManager->get($jobClassName);
+            $response = $job->getInfo();
+        } catch (Exception $e) {
+            $response['message'] = $e->getMessage();
+            $response['line'] = $e->getLine();
+            $response['trace'] = $e->getTrace();
+
+            HttpUtility::setResponseCode(HttpUtility::HTTP_STATUS_400);
+        }
+
+        return json_encode($response);
     }
 
     /**

@@ -2,9 +2,14 @@
 
 namespace GeorgRinger\News\Utility;
 
+/**
+ * This file is part of the "news" Extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
 class ClassParser
 {
-
     private $classes = [];
     private $extends = [];
     private $implements = [];
@@ -49,12 +54,16 @@ class ClassParser
         $file = realpath($file);
         $tokens = token_get_all(file_get_contents($file));
         $classes = [];
+        $clsc = 0;
 
         $si = null;
         $depth = 0;
         $mod = [];
         $doc = null;
         $state = null;
+        $inFunction = false;
+        $functionName = '';
+        $lastLine = 0;
         foreach ($tokens as $idx => &$token) {
             if (is_array($token)) {
                 switch ($token[0]) {
@@ -99,9 +108,12 @@ class ClassParser
                                 $state = self::STATE_FUNCTION_HEAD;
                                 $clsc = count($classes);
                                 if ($depth > 0 && $clsc) {
+                                    $inFunction = true;
+                                    $functionName = $token[1];
                                     $classes[$clsc - 1]['functions'][$token[1]] = [
                                         'modifiers' => $mod,
-                                        'doc' => $doc
+                                        'doc' => $doc,
+                                        'start' => $token[2]
                                     ];
                                 }
                                 break;
@@ -113,6 +125,7 @@ class ClassParser
                         }
                         break;
                 }
+                $lastLine = $token[2];
             } else {
                 switch ($token) {
                     case '{':
@@ -121,6 +134,13 @@ class ClassParser
                     case '}':
                         $depth--;
                         break;
+                }
+
+                if ($token === '}') {
+                    if ($inFunction) {
+                        $classes[$clsc - 1]['functions'][$functionName]['end'] = $lastLine;
+                        $inFunction = false;
+                    }
                 }
 
                 switch ($token) {

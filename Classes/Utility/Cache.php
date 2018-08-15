@@ -3,16 +3,10 @@
 namespace GeorgRinger\News\Utility;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -33,7 +27,6 @@ class Cache
      * Marks as cObj as processed.
      *
      * @param \TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer $cObj
-     * @return void
      */
     public function markContentRecordAsProcessed(\TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer $cObj)
     {
@@ -60,7 +53,6 @@ class Cache
      * "tx_news_uid_[news:uid]"
      *
      * @param array $newsRecords array with news records
-     * @return void
      */
     public static function addCacheTagsByNewsRecords(array $newsRecords)
     {
@@ -68,6 +60,10 @@ class Cache
         foreach ($newsRecords as $news) {
             // cache tag for each news record
             $cacheTags[] = 'tx_news_uid_' . $news->getUid();
+            
+            if ($news->_getProperty('_localizedUid')) {
+                $cacheTags[] = 'tx_news_uid_' . $news->_getProperty('_localizedUid');
+            }
         }
         if (count($cacheTags) > 0) {
             $GLOBALS['TSFE']->addCacheTags($cacheTags);
@@ -79,7 +75,6 @@ class Cache
      * This adds tags with the scheme tx_news_pid_[news:pid]
      *
      * @param \GeorgRinger\News\Domain\Model\Dto\NewsDemand $demand
-     * @return void
      */
     public static function addPageCacheTagsByDemandObject(\GeorgRinger\News\Domain\Model\Dto\NewsDemand $demand)
     {
@@ -89,6 +84,8 @@ class Cache
             foreach (GeneralUtility::trimExplode(',', $demand->getStoragePage()) as $pageId) {
                 $cacheTags[] = 'tx_news_pid_' . $pageId;
             }
+        } else {
+            $cacheTags[] = 'tx_news_domain_model_news';
         }
         if (count($cacheTags) > 0) {
             $GLOBALS['TSFE']->addCacheTags($cacheTags);

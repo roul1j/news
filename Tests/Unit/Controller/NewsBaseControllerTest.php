@@ -3,17 +3,13 @@
 namespace GeorgRinger\News\Tests\Unit\Controller;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
+use Nimut\TestingFramework\MockObject\AccessibleMockObjectInterface;
+use Nimut\TestingFramework\TestCase\UnitTestCase;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
 /**
@@ -21,11 +17,11 @@ use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
  *
  *
  */
-class NewsBaseControllerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
+class NewsBaseControllerTest extends UnitTestCase
 {
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|TypoScriptFrontendController|\TYPO3\CMS\Core\Tests\AccessibleObjectInterface
+     * @var \PHPUnit_Framework_MockObject_MockObject|TypoScriptFrontendController|AccessibleMockObjectInterface
      */
     protected $tsfe = null;
 
@@ -152,7 +148,7 @@ class NewsBaseControllerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
         $mockedController->_set('signalSlotDispatcher', $mockedSignalSlotDispatcher);
 
         $classPart = 'FoController';
-        $signalArguments = ['fo' => 'bar','extendedVariables' => []];
+        $signalArguments = ['fo' => 'bar', 'extendedVariables' => []];
         $name = 'foAction';
 
         $mockedSignalSlotDispatcher->expects($this->once())

@@ -1,22 +1,16 @@
 <?php
+
 namespace GeorgRinger\News\Domain\Model;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
 
 /**
  * News model
- *
  */
 class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
 {
@@ -236,6 +230,9 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      */
     protected $sorting;
 
+    /** @var string */
+    protected $notes;
+
     /**
      * Initialize categories and media relation
      *
@@ -245,11 +242,10 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     {
         $this->categories = new \TYPO3\CMS\Extbase\Persistence\ObjectStorage();
         $this->contentElements = new \TYPO3\CMS\Extbase\Persistence\ObjectStorage();
-        $this->relatedFiles = new \TYPO3\CMS\Extbase\Persistence\ObjectStorage();
         $this->relatedLinks = new \TYPO3\CMS\Extbase\Persistence\ObjectStorage();
-        $this->media = new \TYPO3\CMS\Extbase\Persistence\ObjectStorage();
         $this->falMedia = new \TYPO3\CMS\Extbase\Persistence\ObjectStorage();
         $this->falRelatedFiles = new \TYPO3\CMS\Extbase\Persistence\ObjectStorage();
+        $this->tags = new \TYPO3\CMS\Extbase\Persistence\ObjectStorage();
     }
 
     /**
@@ -266,7 +262,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set title
      *
      * @param string $title title
-     * @return void
      */
     public function setTitle($title)
     {
@@ -287,7 +282,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set alternative title
      *
      * @param string $alternativeTitle
-     * @return void
      */
     public function setAlternativeTitle($alternativeTitle)
     {
@@ -308,7 +302,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set Teaser text
      *
      * @param string $teaser teaser text
-     * @return void
      */
     public function setTeaser($teaser)
     {
@@ -329,7 +322,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set bodytext
      *
      * @param string $bodytext main content
-     * @return void
      */
     public function setBodytext($bodytext)
     {
@@ -350,7 +342,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set date time
      *
      * @param \DateTime $datetime datetime
-     * @return void
      */
     public function setDatetime($datetime)
     {
@@ -401,7 +392,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set archive date
      *
      * @param \DateTime $archive archive date
-     * @return void
      */
     public function setArchive($archive)
     {
@@ -452,7 +442,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set author
      *
      * @param string $author author
-     * @return void
      */
     public function setAuthor($author)
     {
@@ -473,7 +462,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set author's email
      *
      * @param string $authorEmail author's email
-     * @return void
      */
     public function setAuthorEmail($authorEmail)
     {
@@ -510,7 +498,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set categories
      *
      * @param  \TYPO3\CMS\Extbase\Persistence\ObjectStorage $categories
-     * @return void
      */
     public function setCategories($categories)
     {
@@ -521,7 +508,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Adds a category to this categories.
      *
      * @param Category $category
-     * @return void
      */
     public function addCategory(Category $category)
     {
@@ -542,7 +528,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set related from
      *
      * @param \TYPO3\CMS\Extbase\Persistence\ObjectStorage<\GeorgRinger\News\Domain\Model\News> $relatedFrom
-     * @return void
      */
     public function setRelatedFrom($relatedFrom)
     {
@@ -569,7 +554,9 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
         $items = $this->getRelatedFrom();
         if ($items) {
             $items = $items->toArray();
-            usort($items, create_function('$a, $b', 'return $a->getDatetime() < $b->getDatetime();'));
+            usort($items, function ($a, $b) {
+                return $a->getDatetime() < $b->getDatetime();
+            });
         }
         return $items;
     }
@@ -594,7 +581,9 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
         $all = array_unique($all);
 
         if (count($all) > 0) {
-            usort($all, create_function('$a, $b', 'return $a->getDatetime() < $b->getDatetime();'));
+            usort($all, function ($a, $b) {
+                return $a->getDatetime() < $b->getDatetime();
+            });
         }
         return $all;
     }
@@ -609,7 +598,9 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
         $items = $this->getRelated();
         if ($items) {
             $items = $items->toArray();
-            usort($items, create_function('$a, $b', 'return $a->getDatetime() < $b->getDatetime();'));
+            usort($items, function ($a, $b) {
+                return $a->getDatetime() < $b->getDatetime();
+            });
         }
         return $items;
     }
@@ -618,7 +609,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set related news
      *
      * @param \TYPO3\CMS\Extbase\Persistence\ObjectStorage $related related news
-     * @return void
      */
     public function setRelated($related)
     {
@@ -646,10 +636,19 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     }
 
     /**
+     * Short method for getFalRelatedFiles
+     *
+     * @return \TYPO3\CMS\Extbase\Persistence\ObjectStorage
+     */
+    public function getRelatedFiles()
+    {
+        return $this->getFalRelatedFiles();
+    }
+
+    /**
      * Set FAL related files
      *
      * @param \TYPO3\CMS\Extbase\Persistence\ObjectStorage $falRelatedFiles FAL related files
-     * @return void
      */
     public function setFalRelatedFiles($falRelatedFiles)
     {
@@ -660,7 +659,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Adds a file to this files.
      *
      * @param FileReference $file
-     * @return void
      */
     public function addFalRelatedFile(FileReference $file)
     {
@@ -674,7 +672,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set related links
      *
      * @param \TYPO3\CMS\Extbase\Persistence\ObjectStorage<\GeorgRinger\News\Domain\Model\Link> $relatedLinks related links relation
-     * @return void
      */
     public function setRelatedLinks($relatedLinks)
     {
@@ -695,7 +692,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set type of news
      *
      * @param int $type type
-     * @return void
      */
     public function setType($type)
     {
@@ -716,7 +712,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set keywords
      *
      * @param string $keywords keywords
-     * @return void
      */
     public function setKeywords($keywords)
     {
@@ -737,7 +732,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set description
      *
      * @param string $description description
-     * @return void
      */
     public function setDescription($description)
     {
@@ -745,74 +739,9 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     }
 
     /**
-     * Load Media elements
-     *
-     * @return \TYPO3\CMS\Extbase\Persistence\ObjectStorage
-     */
-    public function getMedia()
-    {
-        return $this->media;
-    }
-
-    /**
-     * Get all media elements which are tagged as preview
-     *
-     * @return array
-     */
-    public function getMediaPreviews()
-    {
-        $mediaElements = $this->getMedia();
-
-        if (is_null($mediaElements)) {
-            return null;
-        }
-
-        $previewCollection = [];
-        foreach ($mediaElements as $mediaElement) {
-            if ($mediaElement->getShowinpreview()) {
-                $previewCollection[] = $mediaElement;
-            }
-        }
-
-        if (count($previewCollection) > 0) {
-            return $previewCollection;
-        }
-
-        return null;
-    }
-
-    /**
-     * Get all media elements which are not tagged as preview
-     *
-     * @return array
-     */
-    public function getNonMediaPreviews()
-    {
-        $mediaElements = $this->getMedia();
-
-        if (is_null($mediaElements)) {
-            return null;
-        }
-
-        $collection = [];
-        foreach ($mediaElements as $mediaElement) {
-            if (!$mediaElement->getShowinpreview()) {
-                $collection[] = $mediaElement;
-            }
-        }
-
-        if (count($collection) > 0) {
-            return $collection;
-        }
-
-        return null;
-    }
-
-    /**
      * Adds a related link.
      *
      * @param Link $relatedLink
-     * @return void
      */
     public function addRelatedLink(Link $relatedLink)
     {
@@ -833,10 +762,19 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     }
 
     /**
+     * Short method for getFalMedia()
+     *
+     * @return \TYPO3\CMS\Extbase\Persistence\ObjectStorage
+     */
+    public function getMedia()
+    {
+        return $this->getFalMedia();
+    }
+
+    /**
      * Set Fal media relation
      *
      * @param \TYPO3\CMS\Extbase\Persistence\ObjectStorage $falMedia
-     * @return void
      */
     public function setFalMedia(\TYPO3\CMS\Extbase\Persistence\ObjectStorage $falMedia)
     {
@@ -861,53 +799,77 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      *
      * @return array
      */
-    public function getFalMediaPreviews()
+    public function getMediaPreviews()
     {
-        if ($this->falMediaPreviews === null && $this->getFalMedia()) {
-            $this->falMediaPreviews = [];
-            /** @var $mediaItem FileReference */
-            foreach ($this->getFalMedia() as $mediaItem) {
-                if ($mediaItem->getOriginalResource()->getProperty('showinpreview')) {
-                    $this->falMediaPreviews[] = $mediaItem;
-                }
-            }
-        }
-        return $this->falMediaPreviews;
+        $configuration = [FileReference::VIEW_LIST_AND_DETAIL, FileReference::VIEW_LIST_ONLY];
+        return $this->getMediaItemsByConfiguration($configuration);
     }
 
     /**
-     * Get all media elements which are not tagged as preview
+     * Get all media elements which are allowed for detail views
      *
      * @return array
      */
-    public function getFalMediaNonPreviews()
+    public function getMediaNonPreviews()
     {
-        if ($this->falMediaNonPreviews === null && $this->getFalMedia()) {
-            $this->falMediaNonPreviews = [];
-            /** @var $mediaItem FileReference */
-            foreach ($this->getFalMedia() as $mediaItem) {
-                if (!$mediaItem->getOriginalResource()->getProperty('showinpreview')) {
-                    $this->falMediaNonPreviews[] = $mediaItem;
-                }
-            }
-        }
-        return $this->falMediaNonPreviews;
+        $configuration = [FileReference::VIEW_LIST_AND_DETAIL, FileReference::VIEW_DETAIL_ONLY];
+        return $this->getMediaItemsByConfiguration($configuration);
     }
 
     /**
-     * Get first media element which is tagged as preview and is of type image
+     * Get all media elements which are only for list views
      *
-     * @return \TYPO3\CMS\Extbase\Domain\Model\FileReference
+     * @return array
      */
-    public function getFirstFalImagePreview()
+    public function getMediaListOnly()
     {
-        $mediaElements = $this->getFalMediaPreviews();
-        if (is_array($mediaElements)) {
-            foreach ($mediaElements as $mediaElement) {
-                return $mediaElement;
-            }
+        $configuration = [FileReference::VIEW_LIST_ONLY];
+        return $this->getMediaItemsByConfiguration($configuration);
+    }
+
+    /**
+     * Get first preview
+     *
+     * @return \TYPO3\CMS\Extbase\Domain\Model\FileReference|null
+     */
+    public function getFirstPreview()
+    {
+        foreach ($this->getMediaPreviews() as $mediaElement) {
+            return $mediaElement;
         }
         return null;
+    }
+
+    /**
+     * Get first non preview
+     *
+     * @return \TYPO3\CMS\Extbase\Domain\Model\FileReference|null
+     */
+    public function getFirstNonePreview()
+    {
+        foreach ($this->getMediaNonPreviews() as $mediaElement) {
+            return $mediaElement;
+        }
+        return null;
+    }
+
+    /**
+     * @param array $list
+     * @return array
+     */
+    protected function getMediaItemsByConfiguration(array $list): array
+    {
+        $items = [];
+        if ($this->getFalMedia()) {
+            foreach ($this->getFalMedia() as $mediaItem) {
+                /** @var $mediaItem FileReference */
+                $configuration = (int)$mediaItem->getOriginalResource()->getProperty('showinpreview');
+                if (in_array($configuration, $list, true)) {
+                    $items[] = $mediaItem;
+                }
+            }
+        }
+        return $items;
     }
 
     /**
@@ -924,7 +886,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set internal url
      *
      * @param string $internalUrl internal url
-     * @return void
      */
     public function setInternalurl($internalUrl)
     {
@@ -945,7 +906,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set external url
      *
      * @param string $externalUrl external url
-     * @return void
      */
     public function setExternalurl($externalUrl)
     {
@@ -966,7 +926,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set top news flag
      *
      * @param bool $istopnews top news flag
-     * @return void
      */
     public function setIstopnews($istopnews)
     {
@@ -987,7 +946,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set content element list
      *
      * @param \TYPO3\CMS\Extbase\Persistence\ObjectStorage $contentElements content elements
-     * @return void
      */
     public function setContentElements($contentElements)
     {
@@ -998,7 +956,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Adds a content element to the record
      *
      * @param \GeorgRinger\News\Domain\Model\TtContent $contentElement
-     * @return void
      */
     public function addContentElement(\GeorgRinger\News\Domain\Model\TtContent $contentElement)
     {
@@ -1015,11 +972,32 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      */
     public function getContentElementIdList()
     {
+        return $this->getIdOfContentElements();
+    }
+
+    /**
+     * Get translated id list of content elements
+     *
+     * @return string
+     */
+    public function getTranslatedContentElementIdList()
+    {
+        return $this->getIdOfContentElements(false);
+    }
+
+    /**
+     * Collect id list
+     *
+     * @param bool $original
+     * @return string
+     */
+    protected function getIdOfContentElements($original = true)
+    {
         $idList = [];
         $contentElements = $this->getContentElements();
         if ($contentElements) {
             foreach ($this->getContentElements() as $contentElement) {
-                $idList[] = $contentElement->getUid();
+                $idList[] = $original ? $contentElement->getUid() : $contentElement->_getProperty('_localizedUid');
             }
         }
         return implode(',', $idList);
@@ -1039,11 +1017,30 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set Tags
      *
      * @param \TYPO3\CMS\Extbase\Persistence\ObjectStorage $tags tags
-     * @return void
      */
     public function setTags($tags)
     {
         $this->tags = $tags;
+    }
+
+    /**
+     * Adds a tag
+     *
+     * @param \GeorgRinger\News\Domain\Model\Tag $tag
+     */
+    public function addTag(\GeorgRinger\News\Domain\Model\Tag $tag)
+    {
+        $this->tags->attach($tag);
+    }
+
+    /**
+     * Removes a tag
+     *
+     * @param \GeorgRinger\News\Domain\Model\Tag $tag
+     */
+    public function removeTag(\GeorgRinger\News\Domain\Model\Tag $tag)
+    {
+        $this->tags->detach($tag);
     }
 
     /**
@@ -1060,7 +1057,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set path segment
      *
      * @param string $pathSegment
-     * @return void
      */
     public function setPathSegment($pathSegment)
     {
@@ -1081,7 +1077,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set creation date
      *
      * @param int $crdate
-     * @return void
      */
     public function setCrdate($crdate)
     {
@@ -1121,7 +1116,7 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     /**
      * Get timestamp
      *
-     * @return int
+     * @return \DateTime
      */
     public function getTstamp()
     {
@@ -1131,8 +1126,7 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     /**
      * Set time stamp
      *
-     * @param int $tstamp time stamp
-     * @return void
+     * @param \DateTime $tstamp time stamp
      */
     public function setTstamp($tstamp)
     {
@@ -1143,7 +1137,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set sys language
      *
      * @param int $sysLanguageUid
-     * @return void
      */
     public function setSysLanguageUid($sysLanguageUid)
     {
@@ -1164,7 +1157,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set l10n parent
      *
      * @param int $l10nParent
-     * @return void
      */
     public function setL10nParent($l10nParent)
     {
@@ -1225,7 +1217,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set cruser id
      *
      * @param int $cruserId id of creator user
-     * @return void
      */
     public function setCruserId($cruserId)
     {
@@ -1246,7 +1237,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set edit lock flag
      *
      * @param int $editlock editlock flag
-     * @return void
      */
     public function setEditlock($editlock)
     {
@@ -1267,7 +1257,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set hidden flag
      *
      * @param int $hidden hidden flag
-     * @return void
      */
     public function setHidden($hidden)
     {
@@ -1288,7 +1277,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set deleted flag
      *
      * @param int $deleted deleted flag
-     * @return void
      */
     public function setDeleted($deleted)
     {
@@ -1309,7 +1297,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set start time
      *
      * @param int $starttime start time
-     * @return void
      */
     public function setStarttime($starttime)
     {
@@ -1360,7 +1347,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set end time
      *
      * @param int $endtime end time
-     * @return void
      */
     public function setEndtime($endtime)
     {
@@ -1411,7 +1397,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set fe group
      *
      * @param string $feGroup comma separated list
-     * @return void
      */
     public function setFeGroup($feGroup)
     {
@@ -1432,7 +1417,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set import id
      *
      * @param int $importId import id
-     * @return void
      */
     public function setImportId($importId)
     {
@@ -1453,7 +1437,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set sorting
      *
      * @param int $sorting sorting
-     * @return void
      */
     public function setSorting($sorting)
     {
@@ -1464,7 +1447,6 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
      * Set importSource
      *
      * @param  string $importSource
-     * @return void
      */
     public function setImportSource($importSource)
     {
@@ -1482,30 +1464,37 @@ class News extends \TYPO3\CMS\Extbase\DomainObject\AbstractEntity
     }
 
     /**
-     * Get a sub selection of media elements
-     *
-     * @param $type
-     * @return array|null
+     * @return string
      */
-    protected function getMediaSelection($type)
+    public function getNotes()
     {
-        $mediaElements = $this->getMedia();
-
-        if ($mediaElements === null) {
-            return null;
-        }
-
-        $collection = [];
-        foreach ($mediaElements as $mediaElement) {
-            if ((int)$mediaElement->getType() === $type) {
-                $collection[] = $mediaElement;
-            }
-        }
-
-        if (count($collection) > 0) {
-            return $collection;
-        }
-
-        return null;
+        return $this->notes;
     }
+
+    /**
+     * @param string $notes
+     */
+    public function setNotes(string $notes)
+    {
+        $this->notes = $notes;
+    }
+
+    /**
+     * @return array
+     */
+    public function getFalMediaPreviews()
+    {
+        return $this->getMediaPreviews();
+    }
+
+    public function getFirstFalImagePreview()
+    {
+        return $this->getFirstPreview();
+    }
+
+    public function getFalMediaNonPreviews() {
+        return $this->getMediaNonPreviews();
+    }
+
+
 }

@@ -3,30 +3,24 @@
 namespace GeorgRinger\News\Tests\Unit\Domain\Model;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
 use GeorgRinger\News\Domain\Model\FileReference;
+use Nimut\TestingFramework\TestCase\UnitTestCase;
 
 /**
  * Tests for GeorgRinger\News\Domain\Model\FileReference
  */
-class FileReferenceTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
+class FileReferenceTest extends UnitTestCase
 {
 
     /**
      * Test if fileUid can be set
      *
      * @test
-     * @return void
      */
     public function fileUidCanBeSet()
     {
@@ -40,7 +34,6 @@ class FileReferenceTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
      * Test if alternative can be set
      *
      * @test
-     * @return void
      */
     public function alternativeBeSet()
     {
@@ -54,7 +47,6 @@ class FileReferenceTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
      * Test if description can be set
      *
      * @test
-     * @return void
      */
     public function descriptionBeSet()
     {
@@ -68,7 +60,6 @@ class FileReferenceTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
      * Test if link can be set
      *
      * @test
-     * @return void
      */
     public function linkBeSet()
     {
@@ -82,7 +73,6 @@ class FileReferenceTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
      * Test if title can be set
      *
      * @test
-     * @return void
      */
     public function titleBeSet()
     {
@@ -96,12 +86,11 @@ class FileReferenceTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
      * Test if showInPreview can be set
      *
      * @test
-     * @return void
      */
     public function showInPreviewBeSet()
     {
         $domainModelInstance = new FileReference();
-        $value = true;
+        $value = 2;
         $domainModelInstance->setShowinpreview($value);
         $this->assertEquals($value, $domainModelInstance->getShowinpreview());
     }

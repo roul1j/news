@@ -27,7 +27,9 @@
 						</n:titleTag>
 					</f:else>
 				</f:if>
-				<f:render partial="Detail/Opengraph" arguments="{newsItem: newsItem, settings:settings}" />
+				<f:if condition="{settings.detail.showMetaTags}">
+					<f:render partial="Detail/Opengraph" arguments="{newsItem: newsItem, settings:settings}" />
+				</f:if>
 			</n:format.nothing>
 			<f:if condition="{settings.detail.showPrevNext}">
 				<n:simplePrevNext pidList="{newsItem.pid}" news="{newsItem}" as="paginated" sortField="datetime">
@@ -58,9 +60,8 @@
 				<p>
 					<!-- date -->
 					<span class="news-list-date">
-						<time datetime="{f:format.date(date:newsItem.datetime, format:'Y-m-d')}">
+						<time itemprop="datePublished" datetime="{f:format.date(date:newsItem.datetime, format:'Y-m-d')}">
 							<f:format.date format="{f:translate(key:'dateFormat')}">{newsItem.datetime}</f:format.date>
-							<meta itemprop="datePublished" content="{f:format.date(date:newsItem.datetime, format:'Y-m-d')}" />
 						</time>
 					</span>
 
@@ -85,25 +86,26 @@
 					</f:if>
 				</p>
 			</div>
+			<n:renderMedia news="{newsItem}" imgClass="img-responsive" videoClass="video-wrapper" audioClass="audio-wrapper">
+				<f:if condition="{newsItem.teaser}">
+					<!-- teaser -->
+					<div class="teaser-text" itemprop="description">
+						<f:format.html>{newsItem.teaser}</f:format.html>
+					</div>
+				</f:if>
 
-			<f:if condition="{newsItem.teaser}">
-				<!-- teaser -->
-				<div class="teaser-text" itemprop="description">
-					<f:format.html>{newsItem.teaser}</f:format.html>
+				<f:if condition="{newsItem.contentElements}">
+					<!-- content elements -->
+					<f:cObject typoscriptObjectPath="lib.tx_news.contentElementRendering">{newsItem.contentElementIdList}</f:cObject>
+				</f:if>
+
+				<f:render partial="Detail/MediaContainer" arguments="{media: newsItem.mediaNonPreviews, settings:settings}" />
+
+				<!-- main text -->
+				<div class="news-text-wrap" itemprop="articleBody">
+					<f:format.html>{newsItem.bodytext}</f:format.html>
 				</div>
-			</f:if>
-
-			<f:if condition="{newsItem.contentElements}">
-				<!-- content elements -->
-				<f:cObject typoscriptObjectPath="lib.tx_news.contentElementRendering">{newsItem.contentElementIdList}</f:cObject>
-			</f:if>
-
-			<f:render partial="Detail/FalMediaContainer" arguments="{media: newsItem.falMedia, settings:settings}" />
-
-			<!-- main text -->
-			<div class="news-text-wrap" itemprop="articleBody">
-				<f:format.html>{newsItem.bodytext}</f:format.html>
-			</div>
+			</n:renderMedia>
 
 			<f:if condition="{settings.backPid}">
 				<!-- Link Back -->
@@ -121,22 +123,7 @@
 					and it will be used automatically!
 				</f:comment>
 				<n:extensionLoaded extensionKey="rx_shariff">
-					<f:then>
-						<f:render partial="Detail/Shariff" />
-					</f:then>
-					<f:else>
-						<div class="social">
-							<div class="like">
-								<n:social.facebook.like />
-							</div>
-							<div class="share">
-								<n:social.facebook.share />
-							</div>
-							<div class="twitter">
-								<n:social.twitter>Twitter</n:social.twitter>
-							</div>
-						</div>
-					</f:else>
+					<f:render partial="Detail/Shariff" />
 				</n:extensionLoaded>
 			</f:if>
 
@@ -149,6 +136,14 @@
 
 			<!-- related things -->
 			<div class="news-related-wrap">
+				<f:comment>
+					Various options exist to fetch different related information:
+					- {newsItem.allRelatedSorted}: all related news, related und related from, sorted by date
+					- {newsItem.related}: all related
+					- {newsItem.relatedSorted}: all related, sorted by date
+					- {newsItem.relatedFrom}: all related from
+					- {newsItem.relatedFromSorted}: all related from, sorted by date
+				</f:comment>
 
 				<f:if condition="{newsItem.allRelatedSorted}">
 					<!-- Related news records -->
@@ -170,14 +165,14 @@
 					</div>
 				</f:if>
 
-				<f:if condition="{newsItem.falRelatedFiles}">
-					<!-- FAL related files -->
+				<f:if condition="{newsItem.relatedFiles}">
+					<!-- related files -->
 					<div class="news-related news-related-files">
 						<h4>
 							<f:translate key="related-files" />
 						</h4>
 						<ul>
-							<f:for each="{newsItem.falRelatedFiles}" as="relatedFile">
+							<f:for each="{newsItem.relatedFiles}" as="relatedFile">
 								<li>
 									<span class="news-related-files-link">
 										<a href="{relatedFile.originalResource.publicUrl -> f:format.htmlspecialchars()}" target="_blank">

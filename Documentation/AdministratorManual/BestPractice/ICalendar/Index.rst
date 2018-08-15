@@ -40,10 +40,13 @@ A very simple way to generate the iCalendar feed is using plain TypoScript. All 
     	xhtml_cleaning = none
     	admPanel = 0
     	metaCharset = utf-8
+    	# For 7 LTS
     	additionalHeaders = Content-Type:text/calendar;charset=utf-8
+    	# Since 8 LTS
+    	additionalHeaders.10.header = Content-Type:text/calendar;charset=utf-8
     	disablePrefixComment = 1
+    	linkVars >
     }
-
     pageNewsICalendar = PAGE
     pageNewsICalendar {
     	typeNum = 9819
@@ -105,6 +108,7 @@ To create an ICalendar feed based on a plugin follow this steps:
 			 # define charset
 			 additionalHeaders = Content-Type:text/calendar;charset=utf-8
 			 disablePrefixComment = 1
+			 linkVars >
 		}
 
 		# set the format
@@ -155,6 +159,7 @@ The TypoScript code looks like this.
     		# define charset
     		additionalHeaders = Content-Type:text/calendar;charset=utf-8
     		disablePrefixComment = 1
+    		linkVars >
     	}
 
     	# set the format
@@ -178,10 +183,10 @@ Add a link to the iCalendar feed in the list view
 
 To be able to render a link in the header section of the normal page which points to the iCalendar feed you can use something like this in your List.html fluid template.
 
-.. code-block:: xml
+.. code-block:: html
 
     <n:headerData>
-        <link rel="alternate" type="text/calendar" title="iCalendar 2.0" href="<f:uri.page additionalParams="{type:9819}"/>" />
+        <link rel="alternate" type="text/calendar" title="iCalendar 2.0" href="{f:uri.page(additionalParams:{type:9819})}" />
     </n:headerData>
 
 
@@ -206,4 +211,4 @@ If you want to rewrite the URL, use a configuration like this one.
     	)
     );
 
-This will change the URL to :code:`/feed.ical`.
+This will change the URL to :code:`/calendar.ical`.

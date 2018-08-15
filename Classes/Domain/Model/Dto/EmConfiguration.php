@@ -1,22 +1,16 @@
 <?php
+
 namespace GeorgRinger\News\Domain\Model\Dto;
 
 /**
-     * This file is part of the TYPO3 CMS project.
-     *
-     * It is free software; you can redistribute it and/or modify it under
-     * the terms of the GNU General Public License, either version 2
-     * of the License, or any later version.
-     *
-     * For the full copyright and license information, please read the
-     * LICENSE.txt file that was distributed with this source code.
-     *
-     * The TYPO3 project - inspiring people to share!
-     */
+ * This file is part of the "news" Extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
 
 /**
  * Extension Manager configuration
- *
  */
 class EmConfiguration
 {
@@ -58,7 +52,10 @@ class EmConfiguration
     /**
      * @var bool
      */
-    protected $contentElementRelation = false;
+    protected $contentElementRelation = true;
+
+    /** @var bool */
+    protected $contentElementPreview = true;
 
     /**
      * @var bool
@@ -88,6 +85,9 @@ class EmConfiguration
      */
     protected $showAdministrationModule = true;
 
+    /** @var bool */
+    protected $hidePageTreeForAdministrationModule = false;
+
     /**
      * @var int
      */
@@ -98,10 +98,16 @@ class EmConfiguration
      */
     protected $resourceFolderImporter = '/news_import';
 
+    /** @var bool */
+    protected $mediaPreview = false;
+
+    /** @var bool */
+    protected $advancedMediaPreview = true;
+
     /**
      * @return int
      */
-    public function getTagPid()
+    public function getTagPid(): int
     {
         return (int)$this->tagPid;
     }
@@ -112,7 +118,7 @@ class EmConfiguration
      */
     public function getPrependAtCopy()
     {
-        return (boolean)$this->prependAtCopy;
+        return (bool)$this->prependAtCopy;
     }
 
     /**
@@ -130,23 +136,31 @@ class EmConfiguration
      */
     public function getCategoryBeGroupTceFormsRestriction()
     {
-        return $this->categoryBeGroupTceFormsRestriction;
+        return (bool)$this->categoryBeGroupTceFormsRestriction;
     }
 
     /**
      * @return bool
      */
-    public function getContentElementRelation()
+    public function getContentElementRelation(): bool
     {
-        return (boolean)$this->contentElementRelation;
+        return (bool)$this->contentElementRelation;
     }
 
     /**
      * @return bool
      */
-    public function getManualSorting()
+    public function getContentElementPreview(): bool
     {
-        return (boolean)$this->manualSorting;
+        return (bool)$this->contentElementPreview;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getManualSorting(): bool
+    {
+        return (bool)$this->manualSorting;
     }
 
     /**
@@ -160,14 +174,13 @@ class EmConfiguration
     /**
      * @return bool
      */
-    public function getShowImporter()
+    public function getShowImporter(): bool
     {
         return (boolean)$this->showImporter;
     }
 
     /**
      * @param bool $showAdministrationModule
-     * @return void
      */
     public function setShowAdministrationModule($showAdministrationModule)
     {
@@ -177,17 +190,17 @@ class EmConfiguration
     /**
      * @return bool
      */
-    public function getShowAdministrationModule()
+    public function getShowAdministrationModule(): bool
     {
-        return $this->showAdministrationModule;
+        return (bool)$this->showAdministrationModule;
     }
 
     /**
      * @return bool
      */
-    public function getRteForTeaser()
+    public function getRteForTeaser(): bool
     {
-        return $this->rteForTeaser;
+        return (bool)$this->rteForTeaser;
     }
 
     /**
@@ -201,15 +214,15 @@ class EmConfiguration
     /**
      * @return int
      */
-    public function getStorageUidImporter()
+    public function getStorageUidImporter(): int
     {
-        return $this->storageUidImporter;
+        return (int)$this->storageUidImporter;
     }
 
     /**
      * @return bool
      */
-    public function getDateTimeNotRequired()
+    public function getDateTimeNotRequired(): bool
     {
         return (bool)$this->dateTimeNotRequired;
     }
@@ -217,8 +230,32 @@ class EmConfiguration
     /**
      * @return bool
      */
-    public function getDateTimeRequired()
+    public function getDateTimeRequired(): bool
     {
         return !(bool)$this->dateTimeNotRequired;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getHidePageTreeForAdministrationModule(): bool
+    {
+        return (bool)$this->hidePageTreeForAdministrationModule;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isMediaPreview(): bool
+    {
+        return (bool)$this->mediaPreview;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAdvancedMediaPreview(): bool
+    {
+        return (bool)$this->advancedMediaPreview;
     }
 }

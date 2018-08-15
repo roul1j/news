@@ -9,7 +9,7 @@ return [
         'descriptionColumn' => 'description',
         'label' => 'title',
         'label_alt' => 'uri',
-        'label_alt_force' => 1,
+        'label_alt_force' => true,
         'tstamp' => 'tstamp',
         'crdate' => 'crdate',
         'cruser_id' => 'cruser_id',
@@ -18,7 +18,6 @@ return [
         'transOrigDiffSourceField' => 'l10n_diffsource',
         'versioningWS' => true,
         'origUid' => 't3_origuid',
-        'dividers2tabs' => true,
         'default_sortby' => 'ORDER BY sorting',
         'sortby' => 'sorting',
         'delete' => 'deleted',
@@ -53,15 +52,15 @@ return [
             ]
         ],
         'sys_language_uid' => [
-            'exclude' => 1,
-            'label' => 'LLL:EXT:lang/locallang_general.xlf:LGL.language',
+            'exclude' => true,
+            'label' => 'LLL:EXT:lang/Resources/Private/Language/locallang_general.xlf:LGL.language',
             'config' => [
                 'type' => 'select',
                 'renderType' => 'selectSingle',
                 'special' => 'languages',
                 'items' => [
                     [
-                        'LLL:EXT:lang/locallang_general.xlf:LGL.allLanguages',
+                        'LLL:EXT:lang/Resources/Private/Language/locallang_general.xlf:LGL.allLanguages',
                         -1,
                         'flags-multiple'
                     ],
@@ -71,8 +70,8 @@ return [
         ],
         'l10n_parent' => [
             'displayCond' => 'FIELD:sys_language_uid:>:0',
-            'exclude' => 1,
-            'label' => 'LLL:EXT:lang/locallang_general.xlf:LGL.l18n_parent',
+            'exclude' => true,
+            'label' => 'LLL:EXT:lang/Resources/Private/Language/locallang_general.xlf:LGL.l18n_parent',
             'config' => [
                 'type' => 'select',
                 'renderType' => 'selectSingle',
@@ -81,6 +80,7 @@ return [
                 ],
                 'foreign_table' => 'tx_news_domain_model_link',
                 'foreign_table_where' => 'AND tx_news_domain_model_link.pid=###CURRENT_PID### AND tx_news_domain_model_link.sys_language_uid IN (-1,0)',
+                'default' => 0,
             ]
         ],
         'l10n_diffsource' => [
@@ -90,44 +90,47 @@ return [
             ]
         ],
         'hidden' => [
-            'exclude' => 1,
-            'label' => 'LLL:EXT:lang/locallang_general.xlf:LGL.hidden',
+            'exclude' => true,
+            'label' => 'LLL:EXT:lang/Resources/Private/Language/locallang_general.xlf:LGL.hidden',
             'config' => [
                 'type' => 'check',
                 'default' => 0
             ]
         ],
         'title' => [
-            'exclude' => 0,
-            'l10n_mode' => 'mergeIfNotBlank',
+            'exclude' => false,
             'label' => $ll . 'tx_news_domain_model_link.title',
             'config' => [
                 'type' => 'input',
                 'size' => 30,
+                'behaviour' => [
+                    'allowLanguageSynchronization' => true,
+                ],
             ]
         ],
         'description' => [
-            'exclude' => 1,
-            'l10n_mode' => 'mergeIfNotBlank',
+            'exclude' => true,
             'label' => $ll . 'tx_news_domain_model_link.description',
             'config' => [
                 'type' => 'text',
                 'cols' => 30,
                 'rows' => 5,
+                'behaviour' => [
+                    'allowLanguageSynchronization' => true,
+                ],
             ]
         ],
         'uri' => [
-            'exclude' => 0,
-            'l10n_mode' => 'mergeIfNotBlank',
+            'exclude' => false,
             'label' => $ll . 'tx_news_domain_model_link.uri',
             'config' => [
                 'type' => 'input',
+                'renderType' => 'inputLink',
                 'placeholder' => $ll . 'tx_news_domain_model_link.uri.placeholder',
                 'size' => 30,
                 'eval' => 'trim,required',
                 'softref' => 'typolink',
                 'wizards' => [
-                    '_PADDING' => 2,
                     'link' => [
                         'type' => 'popup',
                         'title' => 'Link',
@@ -137,7 +140,10 @@ return [
                         ],
                         'JSopenParams' => 'height=300,width=500,status=0,menubar=0,scrollbars=1'
                     ]
-                ]
+                ],
+                'behaviour' => [
+                    'allowLanguageSynchronization' => true,
+                ],
             ]
         ],
     ],
@@ -149,11 +155,9 @@ return [
     'palettes' => [
         'paletteCore' => [
             'showitem' => 'hidden,sys_language_uid,l10n_parent, l10n_diffsource,',
-            'canNotCollapse' => true
         ],
         'paletteDescription' => [
             'showitem' => 'description',
-            'canNotCollapse' => false
         ]
     ]
 ];

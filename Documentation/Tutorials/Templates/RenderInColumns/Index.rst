@@ -12,7 +12,7 @@ Render news items in columns
 If you need to list news next to each other and need some additional CSS classes, you can use the modulo operator to achieve this.
 The provided example will wrap 3 items into a div with the class "row".
 
-.. code-block:: xml
+.. code-block:: html
 
 	<f:for each="{paginatedNews}" as="newsItem" iteration="iterator">
 		<f:if condition="{iterator.isFirst}">
@@ -47,12 +47,15 @@ The provided example will wrap 3 items into a div with the class "row".
 
 By using the extension "vhs" you can achieve this in far less lines:
 
-.. code-block:: xml
+.. code-block:: html
 
-	<f:for each="{foo -> v:iterator.chunk(count: 3)}" as="bar" iteration="cycle">
-	    <li>
-	        <f:for each="{bar}" as="user">
-	            <f:render section="yourTarget" arguments="{_all}" />
-	        </f:for>
-	    </li>
-	</f:for>
+   {namespace v=FluidTYPO3\Vhs\ViewHelpers}
+   <f:for each="{news -> v:iterator.chunk(count: 3)}" as="col" iteration="cycle">
+      <div class="row">
+         <f:for each="{col}" as="newsItem">
+            <div class="col-md-4">
+               <f:render partial="List/Item" arguments="{newsItem: newsItem, settings:settings}"/>
+            </div>
+         </f:for>
+      </div>
+   </f:for>

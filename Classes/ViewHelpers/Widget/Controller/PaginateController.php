@@ -3,17 +3,11 @@
 namespace GeorgRinger\News\ViewHelpers\Widget\Controller;
 
 /**
-     * This file is part of the TYPO3 CMS project.
-     *
-     * It is free software; you can redistribute it and/or modify it under
-     * the terms of the GNU General Public License, either version 2
-     * of the License, or any later version.
-     *
-     * For the full copyright and license information, please read the
-     * LICENSE.txt file that was distributed with this source code.
-     *
-     * The TYPO3 project - inspiring people to share!
-     */
+ * This file is part of the "news" Extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
 
 /**
  * Paginate controller to create the pagination.
@@ -63,11 +57,12 @@ class PaginateController extends \TYPO3\CMS\Fluid\Core\Widget\AbstractWidgetCont
     protected $initialOffset = 0;
     /** @var int */
     protected $initialLimit = 0;
+    /** @var int */
+    protected $recordId = 0;
 
     /**
      * Initialize the action and get correct configuration
      *
-     * @return void
      */
     public function initializeAction()
     {
@@ -82,7 +77,7 @@ class PaginateController extends \TYPO3\CMS\Fluid\Core\Widget\AbstractWidgetCont
                 1400741142);
         }
 
-        $this->numberOfPages = intval(ceil(count($this->objects) / $itemsPerPage));
+        $this->numberOfPages = (int)ceil((count($this->objects) - (int)$this->initialOffset) / $itemsPerPage);
         $this->maximumNumberOfLinks = (integer)$this->configuration['maximumNumberOfLinks'];
         if (isset($this->configuration['templatePath']) && !empty($this->configuration['templatePath'])) {
             $this->templatePath = \TYPO3\CMS\Core\Utility\GeneralUtility::getFileAbsFileName($this->configuration['templatePath']);
@@ -94,13 +89,15 @@ class PaginateController extends \TYPO3\CMS\Fluid\Core\Widget\AbstractWidgetCont
         if (isset($this->widgetConfiguration['initial']['limit'])) {
             $this->initialLimit = (int)$this->widgetConfiguration['initial']['limit'];
         }
+        if (isset($this->widgetConfiguration['initial']['recordId'])) {
+            $this->recordId = (int)$this->widgetConfiguration['initial']['recordId'];
+        }
     }
 
     /**
      * Main action
      *
      * @param int $currentPage
-     * @return void
      */
     public function indexAction($currentPage = 1)
     {
@@ -131,7 +128,7 @@ class PaginateController extends \TYPO3\CMS\Fluid\Core\Widget\AbstractWidgetCont
 
             if ($this->currentPage > 1) {
                 $offset = (integer)($itemsPerPage * ($this->currentPage - 1));
-                $offset = $offset + $this->initialOffset;
+                $offset += $this->initialOffset;
                 $query->setOffset($offset);
             } elseif ($this->initialOffset > 0) {
                 $query->setOffset($this->initialOffset);
@@ -139,10 +136,17 @@ class PaginateController extends \TYPO3\CMS\Fluid\Core\Widget\AbstractWidgetCont
             $modifiedObjects = $query->execute();
         }
 
+        if ($this->currentPage > 1) {
+            $pageLabel = \TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate('paginate_overall', 'news', [$this->currentPage, $this->numberOfPages]);
+            $GLOBALS['TSFE']->page['title'] = $GLOBALS['TSFE']->page['title'] . ' - ' . trim($pageLabel, '.');
+        }
+
         $this->view->assign('contentArguments', [
             $this->widgetConfiguration['as'] => $modifiedObjects
         ]);
         $this->view->assign('configuration', $this->configuration);
+        $this->view->assign('recordId', $this->recordId);
+        $this->view->assign('pageId', $this->getCurrentPageId());
         $this->view->assign('pagination', $this->buildPagination());
 
         if (!empty($this->templatePath)) {
@@ -184,7 +188,6 @@ class PaginateController extends \TYPO3\CMS\Fluid\Core\Widget\AbstractWidgetCont
      * If a certain number of links should be displayed, adjust before and after
      * amounts accordingly.
      *
-     * @return void
      */
     protected function calculateDisplayRange()
     {
@@ -203,5 +206,16 @@ class PaginateController extends \TYPO3\CMS\Fluid\Core\Widget\AbstractWidgetCont
         }
         $this->displayRangeStart = (integer)max($this->displayRangeStart, 1);
         $this->displayRangeEnd = (integer)min($this->displayRangeEnd, $this->numberOfPages);
+    }
+
+    /**
+     * @return int
+     */
+    protected function getCurrentPageId()
+    {
+        if (is_object($GLOBALS['TSFE'])) {
+            return (int)$GLOBALS['TSFE']->id;
+        }
+        return 0;
     }
 }

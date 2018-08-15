@@ -3,16 +3,10 @@
 namespace GeorgRinger\News\ViewHelpers;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
 use GeorgRinger\News\Domain\Model\News;
 use TYPO3\CMS\Core\Utility\ArrayUtility;
@@ -77,7 +71,6 @@ class LinkViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedVi
 
     /**
      * @param \GeorgRinger\News\Service\SettingsService $pluginSettingsService
-     * @return void
      */
     public function injectSettingsService(\GeorgRinger\News\Service\SettingsService $pluginSettingsService)
     {
@@ -104,6 +97,7 @@ class LinkViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedVi
      */
     public function render()
     {
+        /** @var News $newsItem */
         $newsItem = $this->arguments['newsItem'];
         $settings = $this->arguments['settings'];
         $uriOnly = $this->arguments['uriOnly'];
@@ -112,8 +106,21 @@ class LinkViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedVi
 
         $tsSettings = (array)$this->pluginSettingsService->getSettings();
         ArrayUtility::mergeRecursiveWithOverrule($tsSettings, (array)$settings);
+        // Options with stdWrap enabled won't override $tsSettings as intended here: override them explicit.
+        if ($settings['useStdWrap']) {
+            foreach (GeneralUtility::trimExplode(',', $settings['useStdWrap'], true) as $stdWrapProperty) {
+                if (is_array($tsSettings[$stdWrapProperty]) && array_key_exists($stdWrapProperty, $settings)) {
+                    $tsSettings[$stdWrapProperty] = $settings[$stdWrapProperty];
+                }
+            }
+        }
 
         $this->init();
+        $linkedContent = $this->renderChildren();
+
+        if ($newsItem === null) {
+            return $linkedContent;
+        }
 
         $newsType = (int)$newsItem->getType();
         switch ($newsType) {
@@ -133,6 +140,11 @@ class LinkViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedVi
         $url = $this->cObj->typoLink_URL($configuration);
         if ($uriOnly) {
             return $url;
+        }
+
+        // link could not be generated
+        if ($url === '' || $linkedContent === $url) {
+            return $linkedContent;
         }
 
         if (isset($tsSettings['link']['typesOpeningInNewWindow'])) {
@@ -155,7 +167,7 @@ class LinkViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedVi
         $this->tag->addAttribute('href', $url);
 
         if (empty($content)) {
-            $content = $this->renderChildren();
+            $content = $linkedContent;
         }
         $this->tag->setContent($content);
 
@@ -174,8 +186,7 @@ class LinkViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedVi
         News $newsItem,
         $tsSettings,
         array $configuration = []
-    )
-    {
+    ) {
         if (!isset($configuration['parameter'])) {
             $detailPid = 0;
             $detailPidDeterminationMethods = GeneralUtility::trimExplode(',', $tsSettings['detailPidDetermination'],
@@ -200,7 +211,7 @@ class LinkViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedVi
             $configuration['parameter'] = $detailPid;
         }
 
-        $configuration['useCacheHash'] = $GLOBALS['TSFE']->sys_page->versioningPreview ? 0 : 1;
+        $configuration['useCacheHash'] = 1;
         $configuration['additionalParams'] .= '&tx_news_pi1[news]=' . $this->getNewsId($newsItem);
 
         if ((int)$tsSettings['link']['skipControllerAndAction'] !== 1) {
@@ -304,7 +315,6 @@ class LinkViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractTagBasedVi
     /**
      * Initialize properties
      *
-     * @return void
      */
     protected function init()
     {

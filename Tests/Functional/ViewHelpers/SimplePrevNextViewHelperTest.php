@@ -3,32 +3,29 @@
 namespace GeorgRinger\News\Tests\Unit\Functional\ViewHelpers;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
 use DateTime;
 use GeorgRinger\News\Domain\Model\News;
-use TYPO3\CMS\Core\Database\DatabaseConnection;
+use Nimut\TestingFramework\MockObject\AccessibleMockObjectInterface;
+use Nimut\TestingFramework\TestCase\FunctionalTestCase;
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Class SimplePrevNextViewHelperTest
  *
  */
-class SimplePrevNextViewHelperTest extends \TYPO3\CMS\Core\Tests\FunctionalTestCase
+class SimplePrevNextViewHelperTest extends FunctionalTestCase
 {
 
-    /** @var \PHPUnit_Framework_MockObject_MockObject|\TYPO3\CMS\Core\Tests\AccessibleObjectInterface|\GeorgRinger\News\ViewHelpers\SimplePrevNextViewHelper */
+    /** @var \PHPUnit_Framework_MockObject_MockObject|AccessibleMockObjectInterface|\GeorgRinger\News\ViewHelpers\SimplePrevNextViewHelper */
     protected $mockedViewHelper;
 
-    /** @var \GeorgRinger\News\Domain\Model\News */
+    /** @var News */
     protected $news;
 
     protected $testExtensionsToLoad = ['typo3conf/ext/news'];
@@ -47,12 +44,10 @@ class SimplePrevNextViewHelperTest extends \TYPO3\CMS\Core\Tests\FunctionalTestC
 
     /**
      * @test
-     * @return void
      */
     public function allNeighboursCanBeFound()
     {
         $this->setDate(1396035186);
-
         $actual = $this->mockedViewHelper->_call('getNeighbours', $this->news, '', 'datetime');
 
         $exp = [
@@ -64,7 +59,6 @@ class SimplePrevNextViewHelperTest extends \TYPO3\CMS\Core\Tests\FunctionalTestC
 
     /**
      * @test
-     * @return void
      */
     public function nextNeighbourCanBeFound()
     {
@@ -80,7 +74,6 @@ class SimplePrevNextViewHelperTest extends \TYPO3\CMS\Core\Tests\FunctionalTestC
 
     /**
      * @test
-     * @return void
      */
     public function previousNeighbourCanBeFound()
     {
@@ -104,14 +97,15 @@ class SimplePrevNextViewHelperTest extends \TYPO3\CMS\Core\Tests\FunctionalTestC
 
     protected function getRow($id)
     {
-        return $this->getDb()->exec_SELECTgetSingleRow('*', 'tx_news_domain_model_news', 'uid=' . (int)$id);
-    }
-
-    /**
-     * @return DatabaseConnection
-     */
-    protected function getDb()
-    {
-        return $GLOBALS['TYPO3_DB'];
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable('tx_news_domain_model_news');
+        return $queryBuilder
+            ->select('*')
+            ->from('tx_news_domain_model_news')
+            ->where(
+                $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($id, \PDO::PARAM_INT))
+            )
+            ->setMaxResults(1)
+            ->execute()->fetch();
     }
 }

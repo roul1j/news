@@ -3,17 +3,13 @@
 namespace GeorgRinger\News\Hooks;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
+use GeorgRinger\News\Domain\Model\Dto\EmConfiguration;
+use TYPO3\CMS\Backend\Utility\BackendUtility as BackendUtilityCore;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -32,7 +28,7 @@ class BackendUtility
     public $removedFieldsInDetailView = [
         'sDEF' => 'orderBy,orderDirection,categories,categoryConjunction,includeSubCategories,
 						archiveRestriction,timeRestriction,timeRestrictionHigh,topNewsRestriction,
-						dateField',
+						dateField,selectedList',
         'additional' => 'limit,offset,hidePagination,topNewsFirst,listPid,list.paginate.itemsPerPage',
         'template' => 'cropMaxCharacters'
     ];
@@ -43,8 +39,23 @@ class BackendUtility
      * @var array
      */
     public $removedFieldsInListView = [
-        'sDEF' => 'dateField,singleNews,previewHiddenRecords',
+        'sDEF' => 'dateField,singleNews,previewHiddenRecords,selectedList',
         'additional' => '',
+        'template' => ''
+    ];
+
+    /**
+     * Fields which are removed in selected list view
+     *
+     * @var array
+     */
+    public $removedFieldsInSelectedListView = [
+        'sDEF' => 'categories,categoryConjunction,includeSubCategories,
+						archiveRestriction,timeRestriction,timeRestrictionHigh,topNewsRestriction,
+						startingpoint,recursive,dateField,singleNews,previewHiddenRecords,
+                        previewHiddenRecords,startingpoint,recursive',
+        'additional' => 'tags,limit,offset,hidePagination,topNewsFirst,backPid,excludeAlreadyDisplayedNews,
+								list.paginate.itemsPerPage,disableOverrideDemand',
         'template' => ''
     ];
 
@@ -54,7 +65,7 @@ class BackendUtility
      * @var array
      */
     public $removedFieldsInDateMenuView = [
-        'sDEF' => 'orderBy,singleNews',
+        'sDEF' => 'orderBy,singleNews,selectedList',
         'additional' => 'limit,offset,hidePagination,topNewsFirst,backPid,previewHiddenRecords,excludeAlreadyDisplayedNews,
 								list.paginate.itemsPerPage',
         'template' => 'cropMaxCharacters,media.maxWidth,media.maxHeight'
@@ -68,7 +79,7 @@ class BackendUtility
     public $removedFieldsInSearchFormView = [
         'sDEF' => 'orderBy,orderDirection,categories,categoryConjunction,includeSubCategories,
 						archiveRestriction,timeRestriction,timeRestrictionHigh,topNewsRestriction,
-						startingpoint,recursive,dateField,singleNews,previewHiddenRecords',
+						startingpoint,recursive,dateField,singleNews,previewHiddenRecords,selectedList',
         'additional' => 'limit,offset,hidePagination,topNewsFirst,detailPid,backPid,excludeAlreadyDisplayedNews,
 								list.paginate.itemsPerPage',
         'template' => 'cropMaxCharacters,media.maxWidth,media.maxHeight'
@@ -82,7 +93,7 @@ class BackendUtility
     public $removedFieldsInCategoryListView = [
         'sDEF' => 'orderBy,orderDirection,categoryConjunction,includeSubCategories,
 						archiveRestriction,timeRestriction,timeRestrictionHigh,topNewsRestriction,
-						recursive,dateField,singleNews,previewHiddenRecords',
+						recursive,dateField,singleNews,previewHiddenRecords,selectedList',
         'additional' => 'limit,offset,hidePagination,topNewsFirst,detailPid,backPid,excludeAlreadyDisplayedNews,
 								list.paginate.itemsPerPage',
         'template' => 'cropMaxCharacters,media.maxWidth,media.maxHeight'
@@ -96,11 +107,19 @@ class BackendUtility
     public $removedFieldsInTagListView = [
         'sDEF' => 'categories,categoryConjunction,includeSubCategories,
 						archiveRestriction,timeRestriction,timeRestrictionHigh,topNewsRestriction,
-						dateField,singleNews,previewHiddenRecords',
+						dateField,singleNews,previewHiddenRecords,selectedList',
         'additional' => 'limit,offset,hidePagination,topNewsFirst,detailPid,backPid,excludeAlreadyDisplayedNews,
 								list.paginate.itemsPerPage',
         'template' => 'cropMaxCharacters,media.maxWidth,media.maxHeight'
     ];
+
+    /** @var EmConfiguration */
+    protected $configuration;
+
+    public function __construct()
+    {
+        $this->configuration = \GeorgRinger\News\Utility\EmConfiguration::getSettings();
+    }
 
     /**
      * Hook function of \TYPO3\CMS\Backend\Utility\BackendUtility
@@ -110,13 +129,36 @@ class BackendUtility
      * @param array $conf some strange configuration
      * @param array $row row of current record
      * @param string $table table name
-     * @return void
      */
     public function getFlexFormDS_postProcessDS(&$dataStructure, $conf, $row, $table)
     {
-        if ($table === 'tt_content' && $row['list_type'] === 'news_pi1' && is_array($dataStructure)) {
+        if ($table === 'tt_content' && $row['CType'] === 'list' && $row['list_type'] === 'news_pi1' && is_array($dataStructure)) {
             $this->updateFlexforms($dataStructure, $row);
+
+            if ($this->enabledInTsConfig($row['pid'])) {
+                $this->addCategoryConstraints($dataStructure);
+            }
         }
+    }
+
+    /**
+     * @param array $dataStructure
+     * @param array $identifier
+     * @return array
+     */
+    public function parseDataStructureByIdentifierPostProcess(array $dataStructure, array $identifier)
+    {
+        if ($identifier['type'] === 'tca' && $identifier['tableName'] === 'tt_content' && $identifier['dataStructureKey'] === 'news_pi1,list') {
+            $getVars = GeneralUtility::_GET('edit');
+            if (is_array($getVars['tt_content'])) {
+                $item = array_keys($getVars['tt_content']);
+                $row = \TYPO3\CMS\Backend\Utility\BackendUtility::getRecord('tt_content', (int)$item[0]);
+                if (is_array($row)) {
+                    $this->updateFlexforms($dataStructure, $row);
+                }
+            }
+        }
+        return $dataStructure;
     }
 
     /**
@@ -124,7 +166,6 @@ class BackendUtility
      *
      * @param array|string &$dataStructure flexform structure
      * @param array $row row of current record
-     * @return void
      */
     protected function updateFlexforms(array &$dataStructure, array $row)
     {
@@ -159,6 +200,9 @@ class BackendUtility
                 case 'News->detail':
                     $this->deleteFromStructure($dataStructure, $this->removedFieldsInDetailView);
                     break;
+                case 'News->selectedList':
+                    $this->deleteFromStructure($dataStructure, $this->removedFieldsInSelectedListView);
+                    break;
                 case 'News->searchForm':
                     $this->deleteFromStructure($dataStructure, $this->removedFieldsInSearchFormView);
                     break;
@@ -187,11 +231,36 @@ class BackendUtility
     }
 
     /**
+     * Add category restriction to flexforms
+     *
+     * @param array $structure
+     */
+    protected function addCategoryConstraints(&$structure)
+    {
+        $categoryRestrictionSetting = $this->configuration->getCategoryRestriction();
+        $categoryRestriction = '';
+        switch ($categoryRestrictionSetting) {
+            case 'current_pid':
+                $categoryRestriction = ' AND sys_category.pid=###CURRENT_PID### ';
+                break;
+            case 'siteroot':
+                $categoryRestriction = ' AND sys_category.pid IN (###SITEROOT###) ';
+                break;
+            case 'page_tsconfig':
+                $categoryRestriction = ' AND sys_category.pid IN (###PAGE_TSCONFIG_IDLIST###) ';
+                break;
+        }
+
+        if (!empty($categoryRestriction) && isset($structure['sheets']['sDEF']['ROOT']['el']['settings.categories'])) {
+            $structure['sheets']['sDEF']['ROOT']['el']['settings.categories']['TCEforms']['config']['foreign_table_where'] = $categoryRestriction . $structure['sheets']['sDEF']['ROOT']['el']['settings.categories']['TCEforms']['config']['foreign_table_where'];
+        }
+    }
+
+    /**
      * Remove fields from flexform structure
      *
      * @param array &$dataStructure flexform structure
      * @param array $fieldsToBeRemoved fields which need to be removed
-     * @return void
      */
     protected function deleteFromStructure(array &$dataStructure, array $fieldsToBeRemoved)
     {
@@ -202,5 +271,18 @@ class BackendUtility
                 unset($dataStructure['sheets'][$sheetName]['ROOT']['el']['settings.' . $fieldName]);
             }
         }
+    }
+
+    /**
+     * @param int $pageId
+     * @return bool
+     */
+    protected function enabledInTsConfig($pageId)
+    {
+        $tsConfig = BackendUtilityCore::getPagesTSconfig($pageId);
+        if (isset($tsConfig['tx_news.']['categoryRestrictionForFlexForms'])) {
+            return (bool)$tsConfig['tx_news.']['categoryRestrictionForFlexForms'];
+        }
+        return false;
     }
 }

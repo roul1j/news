@@ -3,17 +3,12 @@
 namespace GeorgRinger\News\ViewHelpers\Widget;
 
 /**
-     * This file is part of the TYPO3 CMS project.
-     *
-     * It is free software; you can redistribute it and/or modify it under
-     * the terms of the GNU General Public License, either version 2
-     * of the License, or any later version.
-     *
-     * For the full copyright and license information, please read the
-     * LICENSE.txt file that was distributed with this source code.
-     *
-     * The TYPO3 project - inspiring people to share!
-     */
+ * This file is part of the "news" Extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+use TYPO3\CMS\Extbase\Persistence\QueryResultInterface;
 
 /**
  * This ViewHelper renders a Pagination of objects.
@@ -40,11 +35,22 @@ class PaginateViewHelper extends \TYPO3\CMS\Fluid\Core\Widget\AbstractWidgetView
      * Inject controller
      *
      * @param \GeorgRinger\News\ViewHelpers\Widget\Controller\PaginateController $controller
-     * @return void
      */
     public function injectController(\GeorgRinger\News\ViewHelpers\Widget\Controller\PaginateController $controller)
     {
         $this->controller = $controller;
+    }
+
+    /**
+     * Initialize arguments
+     */
+    public function initializeArguments()
+    {
+        parent::initializeArguments();
+        $this->registerArgument('objects', QueryResultInterface::class, 'Objects to auto-complete', true);
+        $this->registerArgument('as', 'string', 'Property to fill', true);
+        $this->registerArgument('configuration', 'array', 'Configuration', false, ['itemsPerPage' => 10, 'insertAbove' => false, 'insertBelow' => true]);
+        $this->registerArgument('initial', 'array', 'Initial configuration', false, []);
     }
 
     /**
@@ -57,12 +63,8 @@ class PaginateViewHelper extends \TYPO3\CMS\Fluid\Core\Widget\AbstractWidgetView
      * @internal param array $initial
      * @return string
      */
-    public function render(
-        \TYPO3\CMS\Extbase\Persistence\QueryResultInterface $objects,
-        $as,
-        $configuration = ['itemsPerPage' => 10, 'insertAbove' => false, 'insertBelow' => true],
-        $initial = []
-    ) {
+    public function render()
+    {
         return $this->initiateSubRequest();
     }
 }

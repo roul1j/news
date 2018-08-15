@@ -3,17 +3,12 @@
 namespace GeorgRinger\News\ViewHelpers\Social;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
+use GeorgRinger\News\Domain\Model\News;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
@@ -47,11 +42,21 @@ class DisqusViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelp
 
     /**
      * @var \GeorgRinger\News\Service\SettingsService $pluginSettingsService
-     * @return void
      */
     public function injectSettingsService(\GeorgRinger\News\Service\SettingsService $pluginSettingsService)
     {
         $this->pluginSettingsService = $pluginSettingsService;
+    }
+
+    /**
+     * Initialize arguments
+     */
+    public function initializeArguments()
+    {
+        parent::initializeArguments();
+        $this->registerArgument('newsItem', News::class, 'news item', true);
+        $this->registerArgument('shortName', 'string', 'short name', true);
+        $this->registerArgument('link', 'string', 'link', true);
     }
 
     /**
@@ -62,14 +67,15 @@ class DisqusViewHelper extends \TYPO3\CMS\Fluid\Core\ViewHelper\AbstractViewHelp
      * @param string $link link
      * @return string
      */
-    public function render(\GeorgRinger\News\Domain\Model\News $newsItem, $shortName, $link)
+    public function render()
     {
         $tsSettings = $this->pluginSettingsService->getSettings();
+        $newsItem = $this->arguments['newsItem'];
 
         $code = '<script type="text/javascript">
-					var disqus_shortname = ' . GeneralUtility::quoteJSvalue($shortName, true) . ';
+					var disqus_shortname = ' . GeneralUtility::quoteJSvalue($this->arguments['shortName'], true) . ';
 					var disqus_identifier = \'news_' . $newsItem->getUid() . '\';
-					var disqus_url = ' . GeneralUtility::quoteJSvalue($link, true) . ';
+					var disqus_url = ' . GeneralUtility::quoteJSvalue($this->arguments['link'], true) . ';
 					var disqus_title = ' . GeneralUtility::quoteJSvalue($newsItem->getTitle(), true) . ';
 					var disqus_config = function () {
 						this.language = ' . GeneralUtility::quoteJSvalue($tsSettings['disqusLocale']) . ';

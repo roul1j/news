@@ -24,11 +24,11 @@ plugin.tx_news {
 	}
 
 	# Modify the translation
-	_LOCAL_LANG {
-		default {
-			# read_more = more >>
-		}
-	}
+	#_LOCAL_LANG {
+	#	default {
+	#		more-link = more >>
+	#	}
+	#}
 
 	# ====================================
 	# Settings available inside Controller and View by accessing $this->settings or {settings.xyz}
@@ -91,17 +91,19 @@ plugin.tx_news {
 		# --------------
 		search {
 			fields = teaser,title,bodytext
+			splitSearchWord = 0
 		}
 
 		# --------------
 		#  Detail
 		# --------------
 		detail {
-			errorHandling = pageNotFoundHandler
+			errorHandling = showStandaloneTemplate,EXT:news/Resources/Private/Templates/News/DetailNotFound.html,404
 			checkPidOfNewsRecord = 0
 			registerProperties = keywords,title
 			showPrevNext = 0
 			showSocialShareButtons = 1
+			showMetaTags = 1
 			disqusShortname =
 
 			# media configuration
@@ -122,7 +124,7 @@ plugin.tx_news {
 
 				video {
 					width = 282
-					height = 300
+					height = 159
 				}
 			}
 		}
@@ -175,6 +177,7 @@ plugin.tx_news {
 			longitude =
 			street-address =
 			locality =
+			locale =
 			region =
 			postal-code =
 			country-name =
@@ -226,6 +229,7 @@ tt_content.shortcut.20.conf.tx_news_domain_model_news {
 		singleNews.field = uid
 		useStdWrap = singleNews
 		insertRecord = 1
+		isShortcut = 1
 	}
 }
 # For fluid_styled_content
@@ -236,6 +240,9 @@ tt_content.shortcut.variables.shortcuts.conf.tx_news_domain_model_news < tt_cont
 # BE-module configuration for EXT:news
 # ==============================================
 module.tx_news < plugin.tx_news
+module.tx_news {
+	settings.list.paginate.itemsPerPage = 25
+}
 
 # ==============================================
 # Persistence object mapping configuration
@@ -244,8 +251,8 @@ config.tx_extbase.persistence.classes {
 	GeorgRinger\News\Domain\Model\News {
 		subclasses {
 			0 = GeorgRinger\News\Domain\Model\NewsDefault
-			1 = GeorgRinger\News\Domain\Model\NewsExternal
-			2 = GeorgRinger\News\Domain\Model\NewsInternal
+			1 = GeorgRinger\News\Domain\Model\NewsInternal
+			2 = GeorgRinger\News\Domain\Model\NewsExternal
 		}
 	}
 
@@ -256,17 +263,18 @@ config.tx_extbase.persistence.classes {
 		}
 	}
 
-	GeorgRinger\News\Domain\Model\NewsExternal {
+	GeorgRinger\News\Domain\Model\NewsInternal {
 		mapping {
 			recordType = 1
 			tableName = tx_news_domain_model_news
 		}
 	}
 
-	GeorgRinger\News\Domain\Model\NewsInternal {
+	GeorgRinger\News\Domain\Model\NewsExternal {
 		mapping {
 			recordType = 2
 			tableName = tx_news_domain_model_news
 		}
 	}
+
 }

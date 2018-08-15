@@ -2,19 +2,12 @@
 
 namespace GeorgRinger\News\Backend\FormDataProvider;
 
-/*
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+/**
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
-
 use GeorgRinger\News\Utility\EmConfiguration;
 use TYPO3\CMS\Backend\Form\FormDataProviderInterface;
 
@@ -38,10 +31,25 @@ class NewsRowInitializeNew implements FormDataProviderInterface
      */
     public function addData(array $result)
     {
-        if ($result['command'] !== 'new' || $result['tableName'] !== 'tx_news_domain_model_news') {
+        if ($result['tableName'] !== 'tx_news_domain_model_news') {
             return $result;
         }
 
+        $result = $this->setTagListingId($result);
+
+        if ($result['command'] === 'new') {
+            $result = $this->fillDateField($result);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array $result
+     * @return array
+     */
+    protected function fillDateField(array $result)
+    {
         if ($this->emConfiguration->getDateTimeRequired()) {
             $result['databaseRow']['datetime'] = $GLOBALS['EXEC_TIME'];
         }
@@ -49,7 +57,7 @@ class NewsRowInitializeNew implements FormDataProviderInterface
         if (is_array($result['pageTsConfig']['tx_news.'])
             && is_array($result['pageTsConfig']['tx_news.']['predefine.'])
         ) {
-            if (isset($result['pageTsConfig']['tx_news.']['predefine.']['author'])) {
+            if (isset($result['pageTsConfig']['tx_news.']['predefine.']['author']) && (int)$result['pageTsConfig']['tx_news.']['predefine.']['author'] === 1) {
                 $result['databaseRow']['author'] = $GLOBALS['BE_USER']->user['realName'];
                 $result['databaseRow']['author_email'] = $GLOBALS['BE_USER']->user['email'];
             }
@@ -62,6 +70,25 @@ class NewsRowInitializeNew implements FormDataProviderInterface
                 }
             }
         }
+
+        return $result;
+    }
+
+    /**
+     * @param array $result
+     * @return array
+     */
+    protected function setTagListingId(array $result)
+    {
+        if (!is_array($result['pageTsConfig']['tx_news.']) || !isset($result['pageTsConfig']['tx_news.']['tagPid'])) {
+            return $result;
+        }
+        $tagPid = (int)$result['pageTsConfig']['tx_news.']['tagPid'];
+        if ($tagPid <= 0) {
+            return $result;
+        }
+
+        $result['processedTca']['columns']['tags']['config']['fieldControl']['listModule']['options']['pid'] = $tagPid;
 
         return $result;
     }

@@ -213,6 +213,9 @@ Usage of a ViewHelper
 """""""""""""""""""""
 
 Use a viewHelper of EXT:news to write any code into the header part. The code could look like this
+
+.. code-block:: html
+
     <n:headerData><script>var newsId = {newsItem.uid};</n:headerData>
 
 If you want to set the title tag, you can use a specific viewHelper:
@@ -242,7 +245,7 @@ look at the given TypoScript snippet:
 			table = tx_news_domain_model_news
 			select {
 				max = 1
-				orderBy = datetime
+				orderBy = datetime desc
 				pidInList = 3
 			}
 			renderObj = TEXT
@@ -299,3 +302,27 @@ Of course you need to adopt the snippet to your own needs, like setting the ``de
 
 By defining a custom property like ``relatedView = 1`` you can differ in the ``List.html`` if it is called by this snippet or by a regular plugin.
 
+Show Category Menu with Typoscript
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: typoscript
+
+	lib.categoryMenu = USER
+	lib.categoryMenu {
+		userFunc = TYPO3\CMS\Extbase\Core\Bootstrap->run
+		extensionName = News
+		pluginName = Pi1
+		vendorName = GeorgRinger
+
+		action = category
+		switchableControllerActions {
+			Category {
+				1 = list
+			}
+		}
+
+		settings < plugin.tx_news.settings
+		settings {
+			listPid = 11
+		}
+	}

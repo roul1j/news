@@ -3,33 +3,26 @@
 namespace GeorgRinger\News\Tests\Unit\ViewHelpers\Social;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
 use GeorgRinger\News\Domain\Model\News;
 use GeorgRinger\News\ViewHelpers\Social\DisqusViewHelper;
+use Nimut\TestingFramework\TestCase\UnitTestCase;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Tests for DisqusSizeViewHelper
- *
  */
-class DisqusViewHelperTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
+class DisqusViewHelperTest extends UnitTestCase
 {
 
     /**
      * Test if default file format works
      *
      * @test
-     * @return void
      */
     public function viewHelperReturnsCorrectJs()
     {
@@ -45,13 +38,18 @@ class DisqusViewHelperTest extends \TYPO3\CMS\Core\Tests\UnitTestCase
             ->will($this->returnValue(['disqusLocale' => $language]));
 
         $viewHelper->injectSettingsService($settingsService);
-        $actualResult = $viewHelper->render($newsItem, 'abcdef', 'http://typo3.org/dummy/fobar.html');
+        $viewHelper->setArguments([
+            'newsItem' => $newsItem,
+            'shortName' => 'abcdef',
+            'link' => 'http://typo3.org/dummy/fobar.html'
+        ]);
+        $actualResult = $viewHelper->render();
 
         $expectedCode = '<script type="text/javascript">
-					var disqus_shortname = ' . GeneralUtility::quoteJSvalue('abcdef', true) . ';
-					var disqus_identifier = ' . GeneralUtility::quoteJSvalue('news_' . $newUid, true) . ';
+					var disqus_shortname = ' . GeneralUtility::quoteJSvalue('abcdef') . ';
+					var disqus_identifier = ' . GeneralUtility::quoteJSvalue('news_' . $newUid) . ';
 					var disqus_url = ' . GeneralUtility::quoteJSvalue('http://typo3.org/dummy/fobar.html') . ';
-					var disqus_title = ' . GeneralUtility::quoteJSvalue('fobar', true) . ';
+					var disqus_title = ' . GeneralUtility::quoteJSvalue('fobar') . ';
 					var disqus_config = function () {
 						this.language = ' . GeneralUtility::quoteJSvalue($language) . ';
 					};

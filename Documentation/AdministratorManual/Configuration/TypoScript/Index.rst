@@ -40,7 +40,7 @@ Properties
 	categories_                           Category selection                    General         string
 	categoryConjunction_                  Category mode                         General         string
 	includeSubCategories_                 Include subcategories                 General         boolean
-	archiveRestriction_                   Archive                               General         int
+	archiveRestriction_                   Archive                               General         string
 	timeRestriction_                      Time limit (LOW)                      General         string
 	timeRestrictionHigh_                  Time limit (HIGH):                    General         string
 	topNewsRestriction_                   Top News                              General         string
@@ -77,7 +77,7 @@ orderBy
          string
    Description
          Define the sorting of displayed news records.
-         The chapter ":ref:`Extend news > Extend flexforms <extendClasses>`" shows how the select box can be extended.
+         The chapter ":ref:`Extend news > Extend flexforms <extendFlexforms>`" shows how the select box can be extended.
 
 .. _tsOrderDirection:
 
@@ -187,7 +187,7 @@ archiveRestriction
    Data type
          string
    Description
-         :typoscript:`plugin.tx_news.settings.archiveRestriction =1`
+         :typoscript:`plugin.tx_news.settings.archiveRestriction = active`
 
          News records can hold an optional archive date. 2 modes are available:
 
@@ -295,7 +295,7 @@ previewHiddenRecords
    Data type
          int
    Description
-         :typoscript:`plugin.tx_news.settings.enablePreviewOfHiddenRecords =1`
+         :typoscript:`plugin.tx_news.settings.previewHiddenRecords = 1`
 
          If set, also records which are normally hidden are displayed. This is especially helpful when using a detail view as preview mode for editors.
 
@@ -589,6 +589,7 @@ Properties
 	`detail\.errorHandling`_              string
 	`detail\.checkPidOfNewsRecord`_       boolean
 	`detail\.registerProperties`_         string
+	`detail\.showMetaTags`_               boolean
 	`detail\.showPrevNext`_               boolean
 	`detail\.showSocialShareButtons`_     boolean
 	`detail\.disqusShortname`_            string
@@ -596,6 +597,7 @@ Properties
 	`list\.paginate`_                     array
 	`list\.rss`_                          array
 	`search\.fields`_                     string
+	`search\.splitSearchWord`_            boolean
 	==================================== ===============
 
 .. _tsCssFile:
@@ -824,7 +826,7 @@ demandClass
          Overload the demand object which is used to build the queries.
 
          .. note::
-           This is just important if you want to extend EXT:news. :ref:`See here <extendClasses>`
+           This is just important if you want to extend EXT:news.
 
 .. _tsLinkHrDate:
 
@@ -1017,14 +1019,21 @@ detail.media
            		maxWidth = 282
            		maxHeight =
 
-           		# Get lightbox settings from css_styled_content
-           		lightbox {
-                      enabled = {$styles.content.imgtext.linkWrap.lightboxEnabled}
-                      class = {$styles.content.imgtext.linkWrap.lightboxCssClass}
-                      width = {$styles.content.imgtext.linkWrap.width}
-                      height = {$styles.content.imgtext.linkWrap.height}
-                      rel = lightbox[myImageSet]
-           		}
+                # If using fluid_styled_content
+                lightbox {
+                    enabled = {$styles.content.textmedia.linkWrap.lightboxEnabled}
+                    class = {$styles.content.textmedia.linkWrap.lightboxCssClass}
+                    width = {$styles.content.textmedia.linkWrap.width}
+                    height = {$styles.content.textmedia.linkWrap.height}
+                }
+                # If using css_styled_content, use those ssettings
+                # lightbox {
+                #      enabled = {$styles.content.imgtext.linkWrap.lightboxEnabled}
+                #      class = {$styles.content.imgtext.linkWrap.lightboxCssClass}
+                #      width = {$styles.content.imgtext.linkWrap.width}
+                #      height = {$styles.content.imgtext.linkWrap.height}
+                #      rel = lightbox[myImageSet]
+                # }
            	}
 
            	video {
@@ -1046,11 +1055,12 @@ detail.errorHandling
    Description
          If no news entry is found, it is possible to use various types of error handling.
 
+         - **showStandaloneTemplate**: A template is rendered. The syntax is `showStandaloneTemplate,<path>,<errorCode>`, e.g. `showStandaloneTemplate,EXT:news/Resources/Private/Templates/News/DetailNotFound.html,404
          - **redirectToListView**: This will redirect to the list view on the same page.
          - **redirectToPage**: Redirect to any page by using the syntax redirectToPage,<pageid>,<status>. This means e.g. redirectToPage,123,404 to redirect to the page with UID 123 and error code 404.
          - **pageNotFoundHandler**: The default page not found handler will be called.
    Default
-         pageNotFoundHandler
+         showStandaloneTemplate
 
 .. _tsDetailCheckPidOfNewsRecord:
 
@@ -1068,10 +1078,25 @@ detail.checkPidOfNewsRecord
    Default
          0
 
+.. _tsDetailShowMetaTags:
+
+detail.showMetaTags
+"""""""""""""""""""
+.. container:: table-row
+
+   Property
+         detail.showMetaTags
+   Data type
+         boolean
+   Description
+         If enabled, the meta tags including title, description and various open graph tags are rendered
+   Default
+          1
+
 .. _tsDetailShowPrevNext:
 
 detail.showPrevNext
-"""""""""""""""""""""""""
+"""""""""""""""""""
 .. container:: table-row
 
    Property
@@ -1277,4 +1302,24 @@ search.fields
 
    Default
         teaser,title,bodytext
+
+search.splitSearchWord
+"""""""""""""
+
+.. container:: table-row
+
+   Property
+         search.splitSearchWord
+   Data type
+         boolean
+   Description
+        If set to `1`, the search subject will be splitted by spaces and it will not only find the phrase but also if the search terms are scattered in a field.
+
+        As an example: Searching for *hello world* will give you as result also the news item with the title `hello the world`. The search terms must be found in the same field, which means that a news item with the world *hello* in the `title` and the word *world* in the bodytext won\'t be found.
+
+        .. hint::
+        If you need a better search experience, think about using something like EXT:solr!
+
+   Default
+        0
 

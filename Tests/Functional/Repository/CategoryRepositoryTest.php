@@ -3,23 +3,18 @@
 namespace GeorgRinger\News\Tests\Unit\Functional\Repository;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
+use Nimut\TestingFramework\TestCase\FunctionalTestCase;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 /**
  * Functional test for the DataHandler
  */
-class CategoryRepositoryTest extends \TYPO3\CMS\Core\Tests\FunctionalTestCase
+class CategoryRepositoryTest extends FunctionalTestCase
 {
 
     /** @var \TYPO3\CMS\Extbase\Object\ObjectManagerInterface The object manager */
@@ -43,7 +38,6 @@ class CategoryRepositoryTest extends \TYPO3\CMS\Core\Tests\FunctionalTestCase
      * Test if by import source is done
      *
      * @test
-     * @return void
      */
     public function findRecordByImportSource()
     {

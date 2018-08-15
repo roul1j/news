@@ -3,26 +3,22 @@
 namespace GeorgRinger\News\Tests\Unit\ViewHelpers;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
+use Nimut\TestingFramework\MockObject\AccessibleMockObjectInterface;
+use Nimut\TestingFramework\TestCase\ViewHelperBaseTestcase;
 
 /**
  * Test for SimplePrevNextViewHelper
  */
-class SimplePrevNextViewHelperTest extends \TYPO3\CMS\Fluid\Tests\Unit\ViewHelpers\ViewHelperBaseTestcase
+class SimplePrevNextViewHelperTest extends ViewHelperBaseTestcase
 {
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject|\TYPO3\CMS\Core\Tests\AccessibleObjectInterface|\GeorgRinger\News\ViewHelpers\SimplePrevNextViewHelper
+     * @var \PHPUnit_Framework_MockObject_MockObject|AccessibleMockObjectInterface|\GeorgRinger\News\ViewHelpers\SimplePrevNextViewHelper
      */
     protected $viewHelper;
 
@@ -31,14 +27,7 @@ class SimplePrevNextViewHelperTest extends \TYPO3\CMS\Fluid\Tests\Unit\ViewHelpe
      */
     public function setUp()
     {
-        parent::setUp();
-
-        $this->viewHelper = $this->getAccessibleMock('GeorgRinger\\News\\ViewHelpers\\SimplePrevNextViewHelper', ['dummy']);
-        $mockedDatabaseConnection = $this
-            ->getMockBuilder('TYPO3\\CMS\\Core\\Database\\DatabaseConnection')
-            ->setMethods(['exec_SELECTgetSingleRow'])
-            ->disableOriginalConstructor();
-        $this->viewHelper->_set('databaseConnection', $mockedDatabaseConnection->getMock());
+        $this->viewHelper = $this->getAccessibleMock('GeorgRinger\\News\\ViewHelpers\\SimplePrevNextViewHelper', ['getRawRecord']);
     }
 
     /**
@@ -46,6 +35,8 @@ class SimplePrevNextViewHelperTest extends \TYPO3\CMS\Fluid\Tests\Unit\ViewHelpe
      */
     public function wrongIdWillReturnNullForObject()
     {
+        $this->viewHelper->expects($this->any())->method('getRawRecord')->withAnyParameters()->will($this->returnValue(null));
+
         $out = $this->viewHelper->_call('getObject', 0);
         $this->assertEquals($out, null);
     }
@@ -99,5 +90,4 @@ class SimplePrevNextViewHelperTest extends \TYPO3\CMS\Fluid\Tests\Unit\ViewHelpe
         $out = $viewHelper->_call('mapResultToObjects', $in);
         $this->assertEquals($out, $exp);
     }
-
 }

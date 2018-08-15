@@ -3,18 +3,13 @@
 namespace GeorgRinger\News\Hooks;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
 use GeorgRinger\News\Service\AccessControlService;
+use GeorgRinger\News\Service\Transliterator\Transliterator;
 use TYPO3\CMS\Backend\Utility\BackendUtility as BackendUtilityCore;
 use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -31,7 +26,6 @@ class DataHandler
      * This happens on two levels: by UID and by PID.
      *
      * @param array $params
-     * @return void
      */
     public function clearCachePostProc(array $params)
     {
@@ -59,7 +53,6 @@ class DataHandler
      * @param int $recordUid id of the record
      * @param array $fields fieldArray
      * @param \TYPO3\CMS\Core\DataHandling\DataHandler $parentObject parent Object
-     * @return void
      */
     public function processDatamap_afterDatabaseOperations(
         $status,
@@ -98,7 +91,7 @@ class DataHandler
                 } else {
 
                     // If the category relation has been modified, no | is found anymore
-                    if (strpos($fieldArray['categories'], '|') === false) {
+                    if (isset($fieldArray['categories']) && strpos($fieldArray['categories'], '|') === false) {
                         $deniedCategories = AccessControlService::getAccessDeniedCategories($newsRecord);
                         if (is_array($deniedCategories)) {
                             foreach ($deniedCategories as $deniedCategory) {
@@ -115,6 +108,25 @@ class DataHandler
         }
     }
 
+
+    /**
+     * Fill path_segment/slug field with title
+     *
+     * @param string $status
+     * @param string $table
+     * @param string|int $id
+     * @param array $fieldArray
+     * @param \TYPO3\CMS\Core\DataHandling\DataHandler $parentObject
+     */
+    public function processDatamap_postProcessFieldArray($status, $table, $id, &$fieldArray, \TYPO3\CMS\Core\DataHandling\DataHandler $parentObject)
+    {
+        if ($table === 'tx_news_domain_model_news' && $status === 'new') {
+            if (!isset($fieldArray['path_segment']) || empty($fieldArray['path_segment'])) {
+                $fieldArray['path_segment'] = Transliterator::urlize($fieldArray['title']);
+            }
+        }
+    }
+
     /**
      * Prevent deleting/moving of a news record if the editor doesn't have access to all categories of the news record
      *
@@ -126,9 +138,9 @@ class DataHandler
      */
     public function processCmdmap_preProcess($command, &$table, $id, $value, $parentObject)
     {
-        if ($table === 'tx_news_domain_model_news' && !$this->getBackendUser()->isAdmin() && is_integer($id) && $command !== 'undelete') {
+        if ($table === 'tx_news_domain_model_news' && !$this->getBackendUser()->isAdmin() && is_int($id) && $command !== 'undelete') {
             $newsRecord = BackendUtilityCore::getRecord($table, $id);
-            if (!AccessControlService::userHasCategoryPermissionsForRecord($newsRecord)) {
+            if (is_array($newsRecord) && !AccessControlService::userHasCategoryPermissionsForRecord($newsRecord)) {
                 $parentObject->log($table, $id, 2, 0, 1,
                     'processCmdmap: Attempt to ' . $command . " a record from table '%s' without permission. Reason: the record has one or more categories assigned that are not defined in the BE usergroup.",
                     1, [$table]);
@@ -146,13 +158,5 @@ class DataHandler
     protected function getBackendUser()
     {
         return $GLOBALS['BE_USER'];
-    }
-
-    /**
-     * @return \TYPO3\Cms\Core\Database\DatabaseConnection
-     */
-    protected static function getDatabaseConnection()
-    {
-        return $GLOBALS['TYPO3_DB'];
     }
 }

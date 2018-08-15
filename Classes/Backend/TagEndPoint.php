@@ -3,21 +3,16 @@
 namespace GeorgRinger\News\Backend;
 
 /**
- * This file is part of the TYPO3 CMS project.
- *
- * It is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License, either version 2
- * of the License, or any later version.
+ * This file is part of the "news" Extension for TYPO3 CMS.
  *
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
- *
- * The TYPO3 project - inspiring people to share!
  */
 use Exception;
 use GeorgRinger\News\Utility\EmConfiguration;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Backend\Utility\BackendUtility as BackendUtilityCore;
+use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\DataHandling\DataHandler as DataHandlerCore;
 use TYPO3\CMS\Core\Http\Response;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -28,7 +23,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 class TagEndPoint
 {
-
     const TAG = 'tx_news_domain_model_tag';
     const NEWS = 'tx_news_domain_model_news';
     const LL_PATH = 'LLL:EXT:news/Resources/Private/Language/locallang_be.xlf:tag_suggest_';
@@ -94,12 +88,18 @@ class TagEndPoint
             throw new Exception('error_no-pid-defined');
         }
 
-        $record = $GLOBALS['TYPO3_DB']->exec_SELECTgetSingleRow(
-            '*',
-            self::TAG,
-            'deleted=0 AND pid=' . $pid .
-            ' AND title=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($title, self::TAG)
-        );
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
+            ->getQueryBuilderForTable(self::TAG);
+        $record = $queryBuilder
+            ->select('*')
+            ->from(self::TAG)
+            ->where(
+                $queryBuilder->expr()->eq('pid', $queryBuilder->createNamedParameter($pid, \PDO::PARAM_INT)),
+                $queryBuilder->expr()->eq('title', $queryBuilder->createNamedParameter($title, \PDO::PARAM_STR))
+            )
+            ->setMaxResults(1)
+            ->execute()->fetch();
+
         if (isset($record['uid'])) {
             $tagUid = $record['uid'];
         } else {
